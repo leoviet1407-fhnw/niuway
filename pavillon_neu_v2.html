@@ -130,9 +130,62 @@
     .parts-grid { gap: 9px; }
     .part-info { padding: 7px 8px 8px; }
   }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(10,20,24,0.6);
+    z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-card {
+    position: relative; background: var(--card-bg); border-radius: var(--radius);
+    padding: 22px 20px 20px; max-width: 420px; width: 100%; max-height: 85vh; overflow-y: auto;
+  }
+  .modal-close {
+    position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(0,0,0,0.06); border: none; color: var(--text-on-card); font-size: 20px;
+    line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    touch-action: manipulation;
+  }
+  .modal-title { font-size: 17px; font-weight: 700; color: var(--text-on-card); margin: 0 30px 14px 0; }
+  .modal-title .en { display: block; font-size: 13px; font-weight: 400; color: var(--text-on-card-secondary); margin-top: 2px; }
+  .modal-text { margin: 0 0 12px; }
+  .modal-text .text-de { display: block; font-size: 13.5px; line-height: 1.5; color: var(--text-on-card); margin-bottom: 2px; }
+  .modal-text .text-en { display: block; font-size: 12.5px; line-height: 1.45; color: var(--text-on-card-secondary); }
+  .modal-ok {
+    display: block; width: 100%; margin-top: 6px; padding: 12px; border-radius: var(--radius);
+    background: var(--nw); border: 1px solid var(--nw); color: #fff; font-weight: 600; cursor: pointer;
+    font-family: var(--font-sans); min-height: 46px; touch-action: manipulation;
+  }
+  .modal-ok .en { display: block; font-size: 11.5px; font-weight: 400; opacity: 0.85; margin-top: 1px; }
 </style>
 </head>
 <body>
+<div class="modal-overlay active" id="deposit-modal">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="deposit-modal-title">
+    <button class="modal-close" id="deposit-modal-close" type="button" aria-label="Schliessen">&times;</button>
+    <h2 class="modal-title" id="deposit-modal-title">Depot &amp; R&uuml;ckgabe<span class="en">Deposit &amp; return</span></h2>
+    <p class="modal-text">
+      <span class="text-de">Der Pavillon ist gemietet &ndash; bitte nach dem Festival zur&uuml;ckbringen.</span>
+      <span class="text-en">The pavilion is rented &ndash; please return it after the festival.</span>
+    </p>
+    <p class="modal-text">
+      <span class="text-de">Pro fehlendem Teil ziehen wir CHF 5.00 vom Depot ab, damit der n&auml;chste Pavillon wieder komplett ist.</span>
+      <span class="text-en">For every missing part, we deduct CHF 5.00 from the deposit so the next pavilion is complete again.</span>
+    </p>
+    <p class="modal-text">
+      <span class="text-de">Wird der Pavillon liegen gelassen oder mitgenommen, stellen wir euch unseren Aufwand in Rechnung.</span>
+      <span class="text-en">If the pavilion is left behind or taken away, we'll charge you for our effort.</span>
+    </p>
+    <p class="modal-text">
+      <span class="text-de">Klingt streng, ist aber kein Problem: Bringt ihn einfach so zur&uuml;ck, wie ihr ihn abgeholt habt, und ihr bekommt die CHF 50.00 vollst&auml;ndig zur&uuml;ck &#128522;</span>
+      <span class="text-en">Sounds strict, but it's no problem: just bring it back the way you picked it up, and you'll get the full CHF 50.00 back &#128522;</span>
+    </p>
+    <p class="modal-text">
+      <span class="text-de">Fragen? Kommt jederzeit an unserem Stand vorbei.</span>
+      <span class="text-en">Questions? Just drop by our stand anytime.</span>
+    </p>
+    <button class="modal-ok" id="deposit-modal-ok" type="button">Verstanden<span class="en">Got it</span></button>
+  </div>
+</div>
 <div class="wrap">
   <h2 class="sr-only">niuway Pavillon Aufbauanleitung, interaktive Schritt-für-Schritt-Ansicht</h2>
   <div class="header" id="header-bar">
@@ -357,6 +410,18 @@
   });
 
   render();
+})();
+</script>
+<script>
+(function() {
+  var modal = document.getElementById('deposit-modal');
+  if (!modal) return;
+  function closeModal() { modal.classList.remove('active'); }
+  document.getElementById('deposit-modal-close').addEventListener('click', closeModal);
+  document.getElementById('deposit-modal-ok').addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) closeModal();
+  });
 })();
 </script>
 <script>
