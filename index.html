@@ -158,9 +158,76 @@
     font-family: var(--font-sans); min-height: 46px; touch-action: manipulation;
   }
   .modal-ok .en { display: block; font-size: 11.5px; font-weight: 400; opacity: 0.85; margin-top: 1px; }
+  .gate-overlay {
+    display: none; position: fixed; inset: 0; background: var(--bg);
+    z-index: 2000; align-items: center; justify-content: center; padding: 20px;
+  }
+  .gate-overlay.active { display: flex; }
+  body.gate-locked { overflow: hidden; }
+  .gate-card {
+    background: var(--card-bg); border-radius: var(--radius); padding: 26px 20px 22px;
+    max-width: 380px; width: 100%; max-height: 90vh; overflow-y: auto; text-align: center;
+  }
+  .gate-title { font-size: 18px; font-weight: 700; color: #174a5b; margin: 0 0 4px; }
+  .gate-title .en { display: block; font-size: 13px; font-weight: 400; color: var(--text-on-card-secondary); margin-top: 2px; }
+  .gate-subtitle-de { display: block; font-size: 13px; line-height: 1.5; color: var(--text-on-card); margin: 14px 0 2px; }
+  .gate-subtitle-en { display: block; font-size: 12px; line-height: 1.45; color: var(--text-on-card-secondary); margin-bottom: 18px; }
+  .gate-field { text-align: left; margin-bottom: 12px; }
+  .gate-field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-on-card); margin-bottom: 5px; }
+  .gate-field label .en { font-weight: 400; color: var(--text-on-card-secondary); }
+  .gate-field input {
+    width: 100%; padding: 11px 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.15);
+    font-family: var(--font-sans); font-size: 14px; color: var(--text-on-card); box-sizing: border-box;
+  }
+  .gate-field input:focus { outline: none; border-color: var(--nw); }
+  .gate-field.invalid input { border-color: #b3261e; }
+  .gate-field-error { display: none; font-size: 11.5px; color: #b3261e; margin-top: 5px; }
+  .gate-field-error .text-de { display: block; }
+  .gate-field-error .text-en { display: block; color: #b3261e; opacity: 0.75; margin-top: 1px; }
+  .gate-field.invalid .gate-field-error { display: block; }
+  .gate-error { display: none; font-size: 12.5px; margin: 0 0 10px; color: #b3261e; }
+  .gate-error span { display: block; }
+  .gate-submit {
+    display: block; width: 100%; margin-top: 4px; padding: 12px; border-radius: var(--radius);
+    background: var(--nw); border: 1px solid var(--nw); color: #fff; font-weight: 600; cursor: pointer;
+    font-family: var(--font-sans); min-height: 46px; touch-action: manipulation;
+  }
+  .gate-submit .en { display: block; font-size: 11.5px; font-weight: 400; opacity: 0.85; margin-top: 1px; }
+  .gate-submit:disabled { opacity: 0.6; cursor: default; }
 </style>
 </head>
 <body>
+<div class="gate-overlay active" id="access-gate">
+  <div class="gate-card">
+    <h2 class="gate-title">Bevor es losgeht<span class="en">Before you get started</span></h2>
+    <span class="gate-subtitle-de">Trag dich kurz ein, damit wir wissen, wer den Pavillon abgeholt hat.</span>
+    <span class="gate-subtitle-en">Please enter your details so we know who picked up the pavilion.</span>
+    <form id="gate-form" novalidate>
+      <input type="hidden" name="_subject" value="Neuer Zugriff: niuway Pavillon Anleitung">
+      <div class="gate-field" id="gate-name-field">
+        <label for="gate-name">Name</label>
+        <input type="text" id="gate-name" name="name" required autocomplete="name">
+        <span class="gate-field-error">
+          <span class="text-de">Bitte gib deinen Namen ein.</span>
+          <span class="text-en">Please enter your name.</span>
+        </span>
+      </div>
+      <div class="gate-field" id="gate-email-field">
+        <label for="gate-email">E-Mail<span class="en"> / Email</span></label>
+        <input type="email" id="gate-email" name="email" required autocomplete="email" inputmode="email">
+        <span class="gate-field-error">
+          <span class="text-de">Bitte gib eine g&uuml;ltige E-Mail-Adresse ein.</span>
+          <span class="text-en">Please enter a valid email address.</span>
+        </span>
+      </div>
+      <p class="gate-error" id="gate-error">
+        <span class="text-de">Etwas ist schiefgelaufen. Bitte versucht es erneut.</span>
+        <span class="text-en">Something went wrong. Please try again.</span>
+      </p>
+      <button class="gate-submit" id="gate-submit" type="submit">Weiter<span class="en">Continue</span></button>
+    </form>
+  </div>
+</div>
 <div class="modal-overlay" id="deposit-modal">
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="deposit-modal-title">
     <button class="modal-close" id="deposit-modal-close" type="button" aria-label="Schliessen">&times;</button>
@@ -374,6 +441,82 @@
 </div>
 <script>
 (function() {
+  var gate = document.getElementById('access-gate');
+  if (!gate) return;
+  var FORM_ENDPOINT = 'https://formspree.io/f/mykqabjy';
+  var STORAGE_KEY = 'niuway_gate_passed';
+
+  function passGate() {
+    gate.classList.remove('active');
+    document.body.classList.remove('gate-locked');
+    window.__gatePassed = true;
+    window.dispatchEvent(new Event('niuway:gate-passed'));
+  }
+
+  document.body.classList.add('gate-locked');
+
+  var alreadyPassed = false;
+  try { alreadyPassed = localStorage.getItem(STORAGE_KEY) === '1'; } catch (e) {}
+
+  if (alreadyPassed) {
+    passGate();
+  } else {
+    var form = document.getElementById('gate-form');
+    var submitBtn = document.getElementById('gate-submit');
+    var errorEl = document.getElementById('gate-error');
+    var nameInput = document.getElementById('gate-name');
+    var emailInput = document.getElementById('gate-email');
+    var nameField = document.getElementById('gate-name-field');
+    var emailField = document.getElementById('gate-email-field');
+    var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function clearFieldError(field) { field.classList.remove('invalid'); }
+    [nameInput, emailInput].forEach(function(input) {
+      input.addEventListener('input', function() {
+        clearFieldError(input.closest('.gate-field'));
+      });
+    });
+
+    function validate() {
+      var valid = true;
+      if (nameInput.value.trim() === '') {
+        nameField.classList.add('invalid');
+        valid = false;
+      } else {
+        clearFieldError(nameField);
+      }
+      if (!emailPattern.test(emailInput.value.trim())) {
+        emailField.classList.add('invalid');
+        valid = false;
+      } else {
+        clearFieldError(emailField);
+      }
+      return valid;
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      errorEl.style.display = 'none';
+      if (!validate()) return;
+      submitBtn.disabled = true;
+      fetch(FORM_ENDPOINT, {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: new FormData(form)
+      }).then(function(res) {
+        if (!res.ok) throw new Error('bad status');
+        try { localStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
+        passGate();
+      }).catch(function() {
+        errorEl.style.display = 'block';
+        submitBtn.disabled = false;
+      });
+    });
+  }
+})();
+</script>
+<script>
+(function() {
   var steps = document.querySelectorAll('.step');
   var dots = document.querySelectorAll('#progress span');
   var total = steps.length;
@@ -421,7 +564,12 @@
   modal.addEventListener('click', function(e) {
     if (e.target === modal) closeModal();
   });
-  setTimeout(openModal, 30000);
+  function startTimer() { setTimeout(openModal, 30000); }
+  if (window.__gatePassed) {
+    startTimer();
+  } else {
+    window.addEventListener('niuway:gate-passed', startTimer, { once: true });
+  }
 })();
 </script>
 <script>
