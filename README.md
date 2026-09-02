@@ -20,14 +20,17 @@ nothing outside it is needed to build or deploy. The Aufbauten drawings and the
 festival planning docs stay in the parent folder, out of git.
 
 ```
-app/                  <- git init here
-  site/               <- Vercel Root Directory
-    index.html
-    api/checkin.js
+app/                  <- the repository root, and Vercel's too
+  index.html          <- served at /
+  api/checkin.js      <- served at /api/checkin
   bookings.csv        <- git-ignored, never pushed
   tents.csv  salt.txt  siteplan.py  gen_tent_finder.py  check.py
   maps/  _app.js  _app_style.css  _sha256.js  _logo.txt
 ```
+
+`index.html` and `api/` sit at the root on purpose: Vercel then needs no Root
+Directory setting, no framework preset and no build command. `.vercelignore`
+keeps the sources out of the deployment.
 
 If the drawings happen to be next to the folder, the build cross-checks against
 them; if they are not, it skips that check and everything else is identical.
@@ -53,7 +56,8 @@ folder — both are optional and the build says when it skips them.
 | `gen_tent_finder.py` | Builds the page |
 | `_app_style.css`, `_app.js`, `_sha256.js`, `_logo.txt` | Inlined into the page |
 | `tent-finder.html` | **Output.** The page as a fragment, for the Claude artifact |
-| `site/index.html` | **Output.** The same page as a complete document — this is what gets hosted |
+| `index.html` | **Output.** The same page as a complete document — this is what Vercel serves |
+| `api/checkin.js` | The check-in endpoint (Vercel serverless function) |
 
 ## tents.csv — what exists
 
@@ -157,9 +161,18 @@ Neither is a big job — say the word.
 
 ## Hosting it
 
-`site/` is what gets deployed — `index.html` plus the `api/checkin.js` function.
-Vercel, root directory `app/site`, plus an Upstash Redis store for check-in.
-Steps are in `site/README.md`.
+Import the repository in Vercel and deploy it as it is — no Root Directory, no
+framework, no build command. Then **Storage → Upstash for Redis → Connect** and
+redeploy, which switches check-in on.
+
+Check it:
+
+```bash
+curl https://<your-project>.vercel.app/api/checkin
+```
+
+`{"tents":{}}` means the store is connected. 503 means the Redis step is missing
+or the project has not been redeployed since.
 
 The same `index.html` also works with no backend at all — opened from disk, on
 GitHub Pages, or as a Claude artifact. It probes `api/checkin` once on load and

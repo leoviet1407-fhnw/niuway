@@ -305,12 +305,11 @@ __JS__</script>
     with open(path, "w", encoding="utf-8") as f:
         f.write(out)
 
-    # site/index.html — the same page as a complete document, for a real web
-    # server. tent-finder.html is a fragment; a host will not wrap it for you.
-    site = os.path.join(HERE, "site")
-    os.makedirs(site, exist_ok=True)
+    # index.html — the same page as a complete document, at the repository root
+    # so Vercel serves it with no configuration. tent-finder.html is a fragment
+    # for the Claude artifact; a web server will not wrap it for you.
     cut = out.index('<div class="wrap">')          # title/link/style above, page below
-    with open(os.path.join(site, "index.html"), "w", encoding="utf-8") as f:
+    with open(os.path.join(HERE, "index.html"), "w", encoding="utf-8") as f:
         f.write(STANDALONE.replace("__HEAD__", out[:cut].strip())
                           .replace("__BODY__", out[cut:].strip()))
     return path, n, len(book), bad, dup, notes, clash, demo, total, areas

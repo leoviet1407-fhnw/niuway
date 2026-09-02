@@ -1,0 +1,10 @@
+# Only index.html and api/ need to be served. Everything else is source.
+*.py
+*.csv
+*.txt
+_*.js
+_*.css
+maps/
+README.md
+tent-finder.html
+.gitignore
