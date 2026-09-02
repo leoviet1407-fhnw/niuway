@@ -2,6 +2,7 @@
 # This folder is the repository root. Never push the booking list.
 # ---------------------------------------------------------------------------
 bookings.csv
+c5z-bookings.csv
 
 # Working files
 __pycache__/
@@ -10,8 +11,8 @@ __pycache__/
 
 # ---------------------------------------------------------------------------
 # Deliberately NOT ignored:
-#   tents.csv    tent numbers and models — no personal data, and the build
-#                needs it
+#   tents.csv       tent numbers and models — no personal data, and the build
+#   c5z-tents.csv   needs both
 #   salt.txt     already public inside the built page; losing it changes every
 #                hash and breaks every lookup
 #   site/        the built page and the check-in function — what Vercel serves
