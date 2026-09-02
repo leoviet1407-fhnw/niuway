@@ -70,6 +70,22 @@ input:focus{outline:none; border-color:var(--nw); box-shadow:0 0 0 2px rgba(23,7
 .num.held{background:#fff7e6; border-color:#d9a21f; color:#8a6400; cursor:default}
 .num.mine{background:#eaf7ef; border-color:var(--ok); color:#1d6b3a}
 
+.confirm{border:1px solid var(--nw); border-radius:10px; padding:14px; background:#f2f7f8}
+.c-q{margin:0; font-size:17px; font-weight:700; color:var(--nw)}
+.c-q b{font-size:22px}
+.c-w{margin:3px 0 12px; font-size:13px; color:var(--tocs); word-break:break-all}
+.c-btns{display:flex; gap:8px}
+.c-btns .primary{margin:0; flex:2}
+.ghost.dark{flex:1; border-color:rgba(0,0,0,.2); color:var(--tocs); background:#fff;
+  border-radius:var(--radius); min-height:50px; font-size:15px}
+.ghost.dark:hover{border-color:var(--err); color:var(--err)}
+.who{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px}
+.who li{display:flex; align-items:baseline; gap:10px; font-size:13.5px;
+  padding-bottom:6px; border-bottom:1px solid var(--line)}
+.who li:last-child{border-bottom:0}
+.who b{min-width:38px; font-size:16px; color:var(--nw); font-variant-numeric:tabular-nums}
+.who span{flex:1; word-break:break-all; color:var(--toc)}
+.who i{font-style:normal; font-size:11px; color:var(--tocs)}
 .tally{font-size:16px; font-weight:700; color:var(--nw)}
 .tally.all{color:var(--ok)}
 .given{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px}

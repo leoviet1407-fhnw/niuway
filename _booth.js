@@ -3,7 +3,7 @@
 (function(){
 "use strict";
 var TENTS=DATA.tents, BOOK=DATA.book, SALT=DATA.salt, TYPES=DATA.types;
-var ASSIGN={}, hit=null, hitHash=null;
+var ASSIGN={}, NAMED=false, hit=null, hitHash=null, hitMail="", pending=null;
 
 function el(id){return document.getElementById(id);}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){
@@ -12,7 +12,6 @@ function say(t,cls){var m=el("msg"); m.textContent=t; m.className="msg"+(cls?" "
 
 /* --- the staff pin: kept on the device, checked on the server --------------
    A field rather than window.prompt, which phone browsers like to suppress. */
-var pending=null;                       // what to do once the pin is entered
 function pin(){ try{ return localStorage.getItem("nw-pin")||""; }catch(e){ return ""; } }
 function showPin(){ el("pinState").textContent = pin() ? "PIN gesetzt" : "kein PIN"; }
 function askPin(why, then){
@@ -39,10 +38,11 @@ el("pinBtn").addEventListener("click",function(){ askPin("", null); });
 
 /* --- the board ------------------------------------------------------------ */
 function load(){
-  return fetch("api/assign",{headers:{Accept:"application/json"}})
+  var q = pin() ? "?pin="+encodeURIComponent(pin()) : "";   // addresses need the pin
+  return fetch("api/assign"+q,{headers:{Accept:"application/json"}})
     .then(function(r){ return r.ok?r.json():null; })
-    .then(function(j){ ASSIGN = (j && j.assign) || {}; })
-    .catch(function(){ ASSIGN={}; });
+    .then(function(j){ ASSIGN=(j&&j.assign)||{}; NAMED=!!(j&&j.named); })
+    .catch(function(){ ASSIGN={}; NAMED=false; });
 }
 function post(body){
   body.pin = pin();
@@ -70,7 +70,7 @@ el("find").addEventListener("submit",function(ev){
     el("find").classList.add("invalid");
     return say("Keine C5Z-Buchung zu dieser Adresse.","bad");
   }
-  hit=b; hitHash=h; say("");
+  hit=b; hitHash=h; hitMail=mail; confirming=null; say("");
   load().then(render);
 });
 
@@ -89,6 +89,7 @@ function minePerPool(){
   Object.keys(out).forEach(function(p){ out[p].sort(function(a,b){return a-b;}); });
   return out;
 }
+var confirming=null;
 function render(){
   if(!hit) return;
   var mine=minePerPool(), L=hit.t, done=0, want=0, blocks="";
@@ -105,11 +106,16 @@ function render(){
     var open=booked-got.length;
     var free=freeOf(pool);
     var picker="";
-    if(open>0){
+    if(confirming && confirming.pool===pool){
+      picker = '<div class="confirm"><p class="c-q">Zelt <b>'+esc(confirming.no)+'</b> vergeben?</p>'+
+        '<p class="c-w">'+esc(pool)+' · '+esc(hitMail)+'</p>'+
+        '<div class="c-btns"><button type="button" class="primary" id="okBtn">Bestätigen</button>'+
+        '<button type="button" class="ghost dark" id="noBtn">Abbrechen</button></div></div>';
+    } else if(open>0){
       picker = free.length
         ? '<p class="pick">Noch '+open+' zu vergeben — '+free.length+' frei:</p><ul class="nums">'+
           free.map(function(t){ return '<li><button type="button" class="num" data-no="'+
-            esc(t.no)+'">'+esc(t.no)+'</button></li>'; }).join("")+'</ul>'
+            esc(t.no)+'" data-pool="'+esc(pool)+'">'+esc(t.no)+'</button></li>'; }).join("")+'</ul>'
         : '<p class="none warn">Keine freien '+esc(pool)+'-Zelte mehr.</p>';
     }
     blocks += '<div class="sect"><h3><span class="kind k-'+esc(pool)+'"><i></i>'+esc(pool)+
@@ -133,8 +139,17 @@ function render(){
     '</article>';
 
   [].forEach.call(el("out").querySelectorAll(".num[data-no]"),function(b){
-    b.addEventListener("click",function(){ assign(b.getAttribute("data-no"), b); });
+    b.addEventListener("click",function(){
+      confirming={no:b.getAttribute("data-no"), pool:b.getAttribute("data-pool")};
+      render();
+    });
   });
+  if(confirming){
+    el("okBtn").addEventListener("click",function(){
+      var c=confirming; confirming=null; assign(c.no, el("okBtn"));
+    });
+    el("noBtn").addEventListener("click",function(){ confirming=null; say(""); render(); });
+  }
   [].forEach.call(el("out").querySelectorAll(".num[data-rel]"),function(b){
     b.addEventListener("click",function(){ release(b.getAttribute("data-rel"), b); });
   });
@@ -148,8 +163,9 @@ function assign(no, btn){
   if(!pin()) return askPin("PIN eingeben, dann wird Zelt "+no+" vergeben.",
                            function(){ assign(no, btn); });
   btn.disabled=true; say("Wird vergeben …");
-  post({tent:no, hash:hitHash, by:""})
-    .then(function(){ ASSIGN[no]={h:hitHash,at:Date.now()}; say("Zelt "+no+" vergeben.","good"); render(); })
+  post({tent:no, hash:hitHash, mail:hitMail, by:""})
+    .then(function(){ ASSIGN[no]={h:hitHash,at:Date.now(),m:hitMail};
+                      say("Zelt "+no+" vergeben.","good"); render(); })
     .catch(function(e){
       btn.disabled=false;
       if(e.code===401) { say(""); askPin("PIN falsch — nochmal versuchen.", function(){ assign(no, btn); }); }
@@ -180,6 +196,15 @@ function release(no, btn){
 /* --- occupancy board ------------------------------------------------------ */
 function board(){
   var total=0, taken=0, body="";
+  var given=Object.keys(ASSIGN).sort(function(a,b){return a-b;});
+  if(given.length){
+    body += '<div class="grp"><h4>Vergeben · '+given.length+'</h4><ul class="who">'+
+      given.map(function(no){
+        var r=ASSIGN[no];
+        return '<li><b>'+esc(no)+'</b><span>'+esc(r.m || (NAMED?"—":"PIN eingeben für Namen"))+
+               '</span><i>'+esc(poolOf(no)||"")+'</i></li>';
+      }).join("")+'</ul></div>';
+  }
   TYPES.forEach(function(kind){
     var all=TENTS.filter(function(t){ return t.t===kind; });
     var chips=all.map(function(t){

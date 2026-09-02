@@ -83,7 +83,28 @@ phone at the booth needs the same picture and the page holds no addresses.
 
 Without `BOOTH_PIN` set, assignment answers 503 with a message saying so.
 
+## The list of who is where
+
+**Belegung** shows every assigned tent with the guest's address, above the grid
+of free and taken numbers.
+
+That list is the one thing the endpoint will not hand out without the PIN. The
+page itself carries no addresses — staff type one to look a guest up, and it is
+stored only at the moment a tent is actually assigned. An open
+`GET /api/assign` returns tent numbers and hashes; `GET /api/assign?pin=…`
+returns the addresses too. So the addresses live in your Redis store and reach
+nobody without the PIN.
+
+## Confirming an assignment
+
+Tapping a number does not assign it. It opens a confirmation showing the number,
+the type and the guest's address, with **Bestätigen** and **Abbrechen** — so a
+mis-tap at a busy counter costs a tap, not a wrong tent.
+
 ## What is in the page
 
 Tent numbers, types, add-on names and quantities, the two staff names on the
 held tents, and `sha256(salt + address)` per booking. No addresses.
+
+Assigned addresses live in Redis, not in the page, and are served only with the
+PIN.
