@@ -18,6 +18,13 @@
     <button type="button" class="ghost" id="boardBtn">Belegung</button>
   </header>
 
+  <form class="card pincard" id="pincard" hidden>
+    <label for="pinInput">Booth-PIN</label>
+    <input id="pinInput" type="text" inputmode="numeric" autocomplete="off" placeholder="PIN">
+    <button type="submit" class="primary">PIN speichern</button>
+    <p class="msg" id="pinMsg" role="status" aria-live="polite"></p>
+  </form>
+
   <form class="card find" id="find">
     <label for="email">E-Mail des Gasts</label>
     <input id="email" type="email" inputmode="email" autocomplete="off" spellcheck="false"

@@ -50,8 +50,13 @@ with the organiser's export.
 ## The PIN
 
 Assigning and releasing need `BOOTH_PIN`, a Vercel environment variable
-(**Settings → Environment Variables**, then redeploy). Staff type it once and it
-is kept on that device.
+(**Settings → Environment Variables**, then redeploy).
+
+On a device with no PIN yet the page shows a **Booth-PIN** field at the top.
+Staff type it once, it is kept on that device, and the field disappears. Tapping
+a tent number before the PIN is set opens that field with the reason and then
+carries on with the assignment; a wrong PIN reopens it and retries. "PIN ändern"
+in the footer brings it back.
 
 **This one is a real gate, not a decorative one.** The pin is never in the page —
 it is compared on the server — so someone who opens `booth.html` can look at the

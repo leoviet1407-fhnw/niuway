@@ -23,7 +23,10 @@ button{font-family:var(--font)}
 .ghost:hover{border-color:#fff; color:#fff}
 
 .card{background:var(--card); color:var(--toc); border-radius:var(--radius); overflow:hidden}
-.find{padding:18px}
+.find,.pincard{padding:18px}
+.pincard{margin-bottom:12px}
+.pincard label{display:block; font-size:12.5px; font-weight:600; margin-bottom:5px}
+.release.arm{border-color:var(--err); color:var(--err); font-weight:700}
 .find label{display:block; font-size:12.5px; font-weight:600; margin-bottom:5px}
 input{width:100%; padding:13px 12px; border-radius:8px; border:1px solid rgba(0,0,0,.15);
   font-family:var(--font); font-size:17px; color:var(--toc); background:#fff}

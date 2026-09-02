@@ -10,16 +10,32 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){
   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function say(t,cls){var m=el("msg"); m.textContent=t; m.className="msg"+(cls?" "+cls:"");}
 
-/* --- the staff pin: kept on the device, checked on the server -------------- */
+/* --- the staff pin: kept on the device, checked on the server --------------
+   A field rather than window.prompt, which phone browsers like to suppress. */
+var pending=null;                       // what to do once the pin is entered
 function pin(){ try{ return localStorage.getItem("nw-pin")||""; }catch(e){ return ""; } }
-function askPin(why){
-  var v=window.prompt(why||"Booth-PIN eingeben:", pin());
-  if(v===null) return null;
-  try{ localStorage.setItem("nw-pin", v.trim()); }catch(e){}
-  showPin(); return v.trim();
-}
 function showPin(){ el("pinState").textContent = pin() ? "PIN gesetzt" : "kein PIN"; }
-el("pinBtn").addEventListener("click",function(){ askPin("Booth-PIN:"); });
+function askPin(why, then){
+  pending = then || null;
+  el("pinMsg").textContent = why || "";
+  el("pinMsg").className = "msg" + (why ? " bad" : "");
+  el("pincard").hidden = false;
+  el("pinInput").value = pin();
+  el("pincard").scrollIntoView({behavior:"smooth", block:"center"});
+  el("pinInput").focus();
+}
+el("pincard").addEventListener("submit",function(ev){
+  ev.preventDefault();
+  var v=String(el("pinInput").value).trim();
+  if(!v){ el("pinMsg").textContent="Bitte den PIN eingeben."; el("pinMsg").className="msg bad"; return; }
+  try{ localStorage.setItem("nw-pin", v); }catch(e){}
+  showPin();
+  el("pincard").hidden = true;
+  el("pinMsg").textContent = "";
+  var go=pending; pending=null;
+  if(go) go();
+});
+el("pinBtn").addEventListener("click",function(){ askPin("", null); });
 
 /* --- the board ------------------------------------------------------------ */
 function load(){
@@ -90,13 +106,15 @@ function render(){
 }
 
 function assign(no, btn){
-  if(!pin() && askPin("Booth-PIN eingeben, um Zelte zu vergeben:")===null) return;
+  if(!pin()) return askPin("PIN eingeben, dann wird Zelt "+no+" vergeben.",
+                           function(){ assign(no, btn); });
   btn.disabled=true; say("Wird vergeben …");
   post({tent:no, hash:hitHash, by:""})
     .then(function(){ ASSIGN[no]={h:hitHash,at:Date.now()}; say(""); done(no); })
     .catch(function(e){
       btn.disabled=false;
-      if(e.code===401) { say("PIN falsch.","bad"); askPin("Booth-PIN:"); }
+      if(e.code===401) { say(""); askPin("PIN falsch — nochmal versuchen.",
+                                        function(){ assign(no, btn); }); }
       else if(e.code===409){ say("Zelt "+no+" ist schon vergeben.","bad"); load().then(render); }
       else if(e.code===503){ say(e.body&&e.body.hint||"Kein Speicher konfiguriert.","bad"); }
       else say("Hat nicht geklappt: "+e.message,"bad");
@@ -114,12 +132,17 @@ function done(no){
   el("next").addEventListener("click",function(){
     hit=null; hitHash=null; el("out").innerHTML=""; el("email").value=""; say(""); el("email").focus();
   });
+  var armed=false;
   el("rel").addEventListener("click",function(){
-    if(!window.confirm("Zelt "+no+" wieder freigeben?")) return;
+    var b=el("rel");
+    if(!armed){ armed=true; b.textContent="Wirklich freigeben?"; b.classList.add("arm");
+                setTimeout(function(){ armed=false; b.textContent="Vergabe zurücknehmen";
+                                       b.classList.remove("arm"); }, 4000); return; }
+    if(!pin()) return askPin("PIN eingeben, dann wird Zelt "+no+" freigegeben.", function(){ b.click(); b.click(); });
     post({tent:no, release:true})
       .then(function(){ delete ASSIGN[no]; say("Zelt "+no+" ist wieder frei.","good"); render(); })
       .catch(function(e){
-        if(e.code===401){ say("PIN falsch.","bad"); askPin("Booth-PIN:"); }
+        if(e.code===401){ say(""); askPin("PIN falsch — nochmal versuchen.", null); }
         else say("Hat nicht geklappt: "+e.message,"bad");
       });
   });
@@ -150,5 +173,6 @@ el("boardBtn").addEventListener("click",function(){
 });
 
 showPin();
+if(!pin()) el("pincard").hidden = false;      // first use on this device
 load().then(board);
 })();
