@@ -1,6 +1,10 @@
 # C5Z inventory. tent_no,type,reserved_for
 # reserved_for takes a tent out of the pool the booth can assign.
 tent_no,type,reserved_for
+124,Regular,
+125,Regular,
+126,Regular,
+127,Regular,
 128,Regular,
 129,Regular,
 130,Regular,
