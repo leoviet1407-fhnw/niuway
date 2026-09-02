@@ -54,10 +54,6 @@ h1{font-size:22px; font-weight:700; margin:0 0 6px; color:var(--tp); letter-spac
 .msg{margin:10px 0 0; font-size:12.5px; line-height:1.45; color:var(--tocs); min-height:1em}
 .msg.bad{color:var(--err)}
 
-.booth{display:flex; align-items:center; gap:8px; margin:12px 0 0; font-size:13px;
-  font-weight:600; color:var(--tp)}
-.booth::before{content:"\25CF"; color:#fff; opacity:.55; font-size:10px}
-
 /* result ---------------------------------------------------------------- */
 #out{display:flex; flex-direction:column; gap:12px; margin-top:12px}
 #out:empty{margin:0}
@@ -204,10 +200,6 @@ body.locked{overflow:hidden}
 }
 .nudge-hours::before{
   content:""; width:7px; height:7px; border-radius:50%; background:#2f9e57; flex:0 0 auto;
-}
-.nudge-fun{
-  margin:10px 2px 0; font-size:12px; line-height:1.4; color:var(--tocs);
-  font-style:italic; text-align:center;
 }
 .nudge-x{
   position:absolute; top:9px; right:9px; width:30px; height:30px; border:0; border-radius:50%;

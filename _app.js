@@ -15,7 +15,6 @@ de:{                                             /* German — shown to guests *
   label:"E-Mail-Adresse aus der Buchung", ph:"name@beispiel.de", submit:"Zelt finden",
   invalid:"Das sieht nicht nach einer E-Mail-Adresse aus.",
   none:"Zu dieser Adresse ist kein Zelt gebucht. Bitte genau die Adresse aus der Buchungsbestätigung eingeben.",
-  booth:"Der niuway-Booth steht auf Camping C5Z.",
   wait:"Zu viele Fehlversuche. Bitte 30 Sekunden warten oder am niuway-Booth auf Camping C5Z melden.",
   found:function(n){return n===1?"1 Zelt gefunden.":n+" Zelte gefunden.";},
   idx:function(n,t){return "Zelt "+n+" von "+t;},
@@ -25,7 +24,6 @@ de:{                                             /* German — shown to guests *
   allSum:function(t,b){return t+" Zelte · "+b+" belegt · "+(t-b)+" frei";},
   allNote:"Ohne Adressen — die stehen nicht in dieser Seite.",
   lostH:"Fragen oder Hilfe nötig?", lostB:"Schreib Alex per WhatsApp.",
-  lostFun:"Lass dich von Alex' gutem Aussehen nicht einschüchtern.",
   hours:"Erreichbar %h",
   addon:"Comfort-Add-on gebucht? Es liegt schon fertig für dich im Zelt.",
   camping:"Camping", tbd:"folgt",
@@ -45,7 +43,6 @@ en:{                                             /* English — same keys, same 
   label:"The e-mail address you booked with", ph:"name@example.com", submit:"Find my tent",
   invalid:"That doesn't look like an e-mail address.",
   none:"No tent is booked to this address. Please use the exact address from your booking confirmation.",
-  booth:"The niuway booth is on campsite C5Z.",
   wait:"Too many attempts. Please wait 30 seconds, or come to the niuway booth on campsite C5Z.",
   found:function(n){return n===1?"1 tent found.":n+" tents found.";},
   idx:function(n,t){return "Tent "+n+" of "+t;},
@@ -55,7 +52,6 @@ en:{                                             /* English — same keys, same 
   allSum:function(t,b){return t+" tents · "+b+" booked · "+(t-b)+" free";},
   allNote:"No addresses — they are not in this page.",
   lostH:"Got a question or need help?", lostB:"Write to Alex on WhatsApp.",
-  lostFun:"Don't be intimidated by Alex's good looks.",
   hours:"Available %h",
   addon:"Booked a comfort add-on? It is already set up for you inside the tent.",
   camping:"Campsite", tbd:"to follow",
@@ -220,7 +216,6 @@ function apply(){
   el("nudgeH").textContent=L.lostH;
   el("nudgeB").textContent=L.lostB;
   el("nudgeHours").textContent=L.hours.replace("%h",DATA.contact.hours);
-  el("nudgeFun").textContent=L.lostFun;
   var cta=el("nudgeCta");
   cta.href="https://wa.me/"+DATA.contact.wa;
   cta.textContent=DATA.contact.phone;
@@ -228,7 +223,6 @@ function apply(){
          'rel="noopener noreferrer">'+esc(DATA.contact.phone)+'</a>';
   el("foot").innerHTML=L.foot.replace("%name",esc(DATA.contact.name)).replace("%wa",wa)
                              .replace("%hours",esc(L.hours.replace("%h",DATA.contact.hours)));
-  el("booth").textContent=L.booth;
   el("addonTop").textContent=L.addon;
   var d=el("demo");
   if(d) d.innerHTML=L.demo.replace("%s",esc(DATA.sample));

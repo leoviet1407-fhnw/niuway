@@ -257,8 +257,6 @@ def page():
     <p class="msg" id="msg" role="status" aria-live="polite"></p>
   </form>
 
-  <p class="booth" id="booth"></p>
-
   <p class="addon addon-top" id="addonTop"></p>
 
   <div id="out"></div>
@@ -282,7 +280,6 @@ def page():
   <p class="nudge-b" id="nudgeB"></p>
   <a class="nudge-cta" id="nudgeCta" target="_blank" rel="noopener noreferrer"></a>
   <p class="nudge-hours" id="nudgeHours"></p>
-  <p class="nudge-fun" id="nudgeFun"></p>
 </div>
 
 <div class="lightbox" id="lb" role="dialog" aria-modal="true">
