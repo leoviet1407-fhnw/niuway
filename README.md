@@ -25,7 +25,7 @@ app/                  <- the repository root, and Vercel's too
   api/checkin.js      <- served at /api/checkin
   bookings.csv        <- git-ignored, never pushed
   tents.csv  salt.txt  siteplan.py  gen_tent_finder.py  check.py
-  maps/  _app.js  _app_style.css  _sha256.js  _logo.txt
+  _app.js  _app_style.css  _sha256.js  _logo.txt
 ```
 
 `index.html` and `api/` sit at the root on purpose: Vercel then needs no Root
@@ -42,15 +42,14 @@ cd app
 python3 gen_tent_finder.py
 ```
 
-Writes `tent-finder.html` and `site/index.html`. `pillow` is needed only if you
-put photos in `maps/`, `pymupdf` only if the Aufbauten drawings sit next to the
-folder — both are optional and the build says when it skips them.
+Writes `tent-finder.html` and `site/index.html`. `pymupdf` is needed only if the Aufbauten
+drawings sit next to the folder, and it is optional — the build says when it
+skips the cross-check.
 
 | File | Role |
 |---|---|
 | `bookings.csv` | **Input.** `email,campsite,tent_no` — one line per tent. Never publish it. |
 | `tents.csv` | **Input.** One line per tent; column `tent_no` is what guests see. |
-| `maps/` | **Input.** One drone photo per campsite — `C3.jpg`, `C9.jpg`, `DJK.jpg`. |
 | `salt.txt` | **Input.** Random value for the hashes. Don't delete it, or every hash changes. |
 | `siteplan.py` | Tent count and model per campsite from the PDFs; photo and coordinates |
 | `gen_tent_finder.py` | Builds the page |
@@ -78,11 +77,10 @@ date, so the file wins and the warning is there to be read, not silenced.
 C9 currently holds the real numbers (301–312). C3 and Green Camping are still
 empty, so those campsites have no tents on the page yet.
 
-## The picture and the location
+## The location link
 
-The result card carries two things about the place: the campsite photo from
-`maps/` (shown as it is, nothing drawn on it — see `maps/README.md`) and a
-"Directions in Google Maps" link built from `COORDS` in `siteplan.py`:
+Each result card carries a "Directions in Google Maps" link built from `COORDS`
+in `siteplan.py`:
 
 ```python
 COORDS = {
@@ -93,10 +91,12 @@ COORDS = {
 ```
 
 The three campsites are 800 m to 2.2 km apart, so the link is doing real work —
-it is the difference between a guest walking to the right field and the wrong one.
-A campsite with no coordinates simply gets no link.
+it is the difference between a guest walking to the right field and the wrong
+one. A campsite with no coordinates simply gets no link.
 
-The CAD drawings are never shown to guests.
+There is no picture on the card. The CAD drawings are never shown to guests, and
+the drone-photo path was removed on 2026-09-02 — it is in git history if it is
+ever wanted back.
 
 ## bookings.csv — who has what
 
@@ -204,7 +204,6 @@ nothing personal behind it.
 
 ## Still to fill in
 
-- `maps/C3.jpg`, `maps/C9.jpg`, `maps/DJK.jpg` — the drone photos.
-- `tents.csv` — the real tent numbers in `tent_no`.
-- `bookings.csv` — the organiser's booking list.
+- The model for C3 tent 92 — the row in `tents.csv` has an empty model column.
+  Nothing on the card shows it, so this is bookkeeping, not a visible gap.
 - Nothing else — `CONTACT` is Alex on WhatsApp, +41 76 541 13 25.

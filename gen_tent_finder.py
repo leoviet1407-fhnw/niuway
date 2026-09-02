@@ -11,8 +11,6 @@ Where the numbers and the map come from:
   tents.csv   the authority for what exists: campsite, tent_no, model. Written
               with placeholder numbers on first run, never overwritten after
               that. The Aufbauten drawings are only cross-checked against it.
-  maps/       one drone photo per campsite — maps/C3.jpg and so on. Shown as
-              it is, nothing drawn on it. No photo, no picture on the card.
 
 Security, such as it is on a static page:
   * no e-mail address is written into the page — only sha256(salt + address)
@@ -39,6 +37,11 @@ CONTACT = {"name": "Alex", "phone": "+41 76 541 13 25", "wa": "41765411325",
 # anything the page can show, anyone holding the file can read out of it.
 ADMINS = ["flo@niuway.ch"]
 SW = {"r": "r", "L": "l", "X": "x"}              # css token suffix per model
+
+# Holes in a campsite's numbering that are known to be nothing — a number the
+# organiser skipped, not a tent that is missing. Leo confirmed DJK 3 on
+# 2026-09-02. Anything not listed here still gets flagged at build time.
+ACCEPTED_GAPS = {"DJK": {"3"}}
 TENTS_CSV = os.path.join(HERE, "tents.csv")
 
 
@@ -96,14 +99,14 @@ def tents(areas):
             more = {k: listed.get(k, 0) - drawn.get(k, 0) for k in ("r", "L", "X", "?")}
             notes.append("%s: %s than the drawing (%s vs %s)"
                          % (a["key"], _diff(more), _mix(listed), _mix(drawn)))
-        gap = _gaps([no for (site, no) in mine])
+        gap = _gaps([no for (site, no) in mine], ACCEPTED_GAPS.get(a["key"], set()))
         if gap:
             notes.append("%s: numbers run %s but %s missing — is that tent unsold, or "
                          "filtered out of the export?" % (a["key"], gap[0], gap[1]))
     return dup, notes
 
 
-def _gaps(nos):
+def _gaps(nos, accepted=frozenset()):
     """Holes in an otherwise unbroken run of numbers — usually a filtered export."""
     try:
         ns = sorted(int(n) for n in nos)
@@ -111,7 +114,8 @@ def _gaps(nos):
         return None                       # not plain numbers, nothing to check
     if len(ns) < 3:
         return None
-    missing = [n for n in range(ns[0], ns[-1] + 1) if n not in set(ns)]
+    missing = [n for n in range(ns[0], ns[-1] + 1)
+               if n not in set(ns) and str(n) not in accepted]
     if not missing or len(missing) > len(ns) / 2:
         return None
     return ("%d-%d" % (ns[0], ns[-1]), ", ".join(map(str, missing)))
@@ -317,8 +321,8 @@ if __name__ == "__main__":
     print("%s — %d tents · %d bookings / %d addresses%s"
           % (os.path.basename(path), total, n, guests, "  [demo data]" if demo else ""))
     for a in areas.values():
-        print("  %-4s %2d tents · %s" % (a["key"], len(a["tents"]),
-              "photo maps/" + a["map"] if a["map"] else "NO PHOTO — put one in maps/%s.jpg" % a["key"]))
+        print("  %-4s %2d tents%s" % (a["key"], len(a["tents"]),
+              "" if a["drawn"] else "  (drawing not in this checkout)"))
     for d in set(dup):
         print("  ! %s" % d)
     for d in notes:

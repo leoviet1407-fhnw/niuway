@@ -4,18 +4,10 @@
 The Aufbauten PDFs give the tent count and each tent's model and size. That is
 all they are used for — the page does not point at an individual tent.
 
-The picture comes from maps/:
-
-    maps/C3.jpg     a drone photo of the campsite (jpg or png)
-
-Nothing to calibrate and nothing to line up: the photo is shown as it is, with
-nothing drawn on top. No photo for a campsite means no picture on the card —
-the drawing is never shown to guests.
-
 C5Z is not covered here. The niuway booth stands on C5Z, but that is one line of
 copy in the page (T.booth in _app.js), not a map.
 """
-import base64, glob, math, mimetypes, os, statistics as st
+import math, os, statistics as st
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -92,18 +84,6 @@ def _drawn(key):
     return out
 
 
-def _photo(key):
-    """maps/<key>.<ext> if it is there, as (w, h, data uri, filename)."""
-    for f in sorted(glob.glob(os.path.join(HERE, "maps", key + ".*"))):
-        if os.path.splitext(f)[1].lower() not in (".jpg", ".jpeg", ".png", ".webp"):
-            continue
-        from PIL import Image
-        with Image.open(f) as im:
-            w, h = im.size
-        uri = "data:%s;base64,%s" % (mimetypes.guess_type(f)[0] or "image/jpeg",
-                                     base64.b64encode(open(f, "rb").read()).decode())
-        return w, h, uri, os.path.basename(f)
-    return None
 
 
 
@@ -111,15 +91,9 @@ def _photo(key):
 def area(key, name):
     tents = _drawn(key)                    # None when the drawing is not here
 
-    shot = _photo(key)
-    a = {"key": key, "name": name, "tents": tents or [], "drawn": tents is not None,
-         "geo": list(COORDS.get(key)) if COORDS.get(key) else None,
-         "source": "GGF26 - Aufbauten %s.pdf" % key}
-    if shot:
-        a["w"], a["h"], a["plan"], a["map"] = shot
-    else:
-        a["map"] = None
-    return a
+    return {"key": key, "name": name, "tents": tents or [], "drawn": tents is not None,
+            "geo": list(COORDS.get(key)) if COORDS.get(key) else None,
+            "source": "GGF26 - Aufbauten %s.pdf" % key}
 
 
 def all_areas():
@@ -129,12 +103,7 @@ def all_areas():
 if __name__ == "__main__":
     for k, n in AREAS:
         a = area(k, n)
-        if a["map"]:
-            print("%-4s %2d tents · photo %-12s %dx%d px · %.0f kB"
-                  % (k, len(a["tents"]), a["map"], a["w"], a["h"],
-                     len(a["plan"]) * 3 / 4 / 1024))
-        else:
-            print("%-4s %2d tents · no photo — put one in maps/%s.jpg" % (k, len(a["tents"]), k))
+        print("%-4s %2d tents" % (k, len(a["tents"])))
         if not a["drawn"]:
             print("     drawing not in this checkout — cross-check skipped")
         if not a["geo"]:
