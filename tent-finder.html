@@ -1,0 +1,647 @@
+<!-- niuway tent finder · Rev 2 · 2026-09-02 · 56 tents -->
+<title>Tent Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap">
+<style>/* Zeltfinder — niuway design system (niuway.vercel.app):
+   Barlow, teal ground #174a5b, white cards at 12px radius, DE over EN.
+   Tent colours are the ones on the Aufbauten drawings:
+   mauve = Regular, yellow = Large, green = EXTRA Large. */
+:root{
+  --nw:#174a5b; --bg:#174a5b; --card:#ffffff;
+  --tp:#ffffff; --ts:rgba(255,255,255,0.72); --tl:rgba(255,255,255,0.15);
+  --toc:#1c1c1a; --tocs:#6b6b66; --line:rgba(0,0,0,0.10);
+  --err:#b3261e; --radius:12px;
+  --m-r:#b96c9c; --m-l:#d9a21f; --m-x:#4f8f57;
+  --field:#eceff0;
+  --font:'Barlow',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%; text-size-adjust:100%}
+body{margin:0; background:var(--bg); font-family:var(--font); color:var(--tp); overflow-x:hidden}
+img{max-width:100%}
+button{font-family:var(--font); font-size:16px}
+:focus-visible{outline:2px solid #fff; outline-offset:2px}
+
+.wrap{max-width:480px; width:100%; margin:0 auto; min-height:100vh;
+  padding:calc(1rem + env(safe-area-inset-top,0px)) 1rem calc(2rem + env(safe-area-inset-bottom,0px))}
+
+/* header ---------------------------------------------------------------- */
+.header{display:flex; align-items:center; justify-content:space-between; padding:.75rem 0 1.25rem}
+.brand-logo{height:22px; width:auto; display:block}
+.lang{display:flex; gap:2px; padding:2px; border-radius:999px; background:rgba(255,255,255,0.14)}
+.lang button{
+  border:0; background:none; color:var(--ts); cursor:pointer; padding:5px 11px;
+  border-radius:999px; font-size:12.5px; font-weight:600; letter-spacing:.02em;
+  min-height:30px; touch-action:manipulation;
+}
+.lang button[aria-pressed="true"]{background:#fff; color:var(--nw)}
+
+h1{font-size:22px; font-weight:700; margin:0 0 6px; color:var(--tp); letter-spacing:-.2px}
+.intro{margin:0 0 1.25rem; font-size:13.5px; line-height:1.5; color:var(--ts); max-width:36ch}
+
+/* search card ----------------------------------------------------------- */
+.card{background:var(--card); border-radius:var(--radius); color:var(--toc); overflow:hidden}
+.finder{padding:20px 18px 18px}
+.finder label{display:block; font-size:12.5px; font-weight:600; color:var(--toc); margin-bottom:5px}
+.finder input{
+  width:100%; padding:11px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.15);
+  font-family:var(--font); font-size:16px; color:var(--toc); background:#fff;
+}
+.finder input:focus{outline:none; border-color:var(--nw); box-shadow:0 0 0 2px rgba(23,74,91,.15)}
+.finder.invalid input{border-color:var(--err)}
+.submit{
+  display:block; width:100%; margin-top:12px; padding:12px; border-radius:var(--radius);
+  background:var(--nw); border:1px solid var(--nw); color:#fff; font-weight:600;
+  cursor:pointer; min-height:46px; touch-action:manipulation;
+}
+.submit:hover{background:#1c586d}
+.msg{margin:10px 0 0; font-size:12.5px; line-height:1.45; color:var(--tocs); min-height:1em}
+.msg.bad{color:var(--err)}
+
+.booth{display:flex; align-items:center; gap:8px; margin:12px 0 0; font-size:13px;
+  font-weight:600; color:var(--tp)}
+.booth::before{content:"\25CF"; color:#fff; opacity:.55; font-size:10px}
+
+/* result ---------------------------------------------------------------- */
+#out{display:flex; flex-direction:column; gap:12px; margin-top:12px}
+#out:empty{margin:0}
+.res-hd{display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:10px 18px; border-bottom:1px solid var(--line)}
+.model{display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:600; color:var(--nw)}
+.model i{width:12px; height:12px; border-radius:2px; background:var(--sw); flex:0 0 auto}
+.model.is-tbd{color:var(--tocs)}
+.idx{font-size:11.5px; font-weight:500; color:var(--tocs); text-align:right}
+.tent-eyebrow{margin:0; padding:14px 18px 0; font-size:11px; font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--tocs)}
+.is-pickup .tent-eyebrow{color:var(--nw)}
+.is-pickup{outline:2px solid var(--nw); outline-offset:-2px}
+.tent-no{margin:0; padding:2px 18px 0; font-size:56px; line-height:1; font-weight:700;
+  color:var(--nw); letter-spacing:-1.5px; font-variant-numeric:tabular-nums}
+.tent-sub{margin:0; padding:6px 18px 16px; font-size:12.5px; color:var(--tocs)}
+.facts{margin:0; display:grid; grid-template-columns:1fr; border-top:1px solid var(--line)}
+.facts>div{padding:11px 18px; border-right:1px solid var(--line)}
+.facts>div:last-child{border-right:0}
+.facts dt{margin:0 0 2px; font-size:11px; font-weight:600; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--tocs)}
+.facts dd{margin:0; font-size:19px; font-weight:700; color:var(--nw);
+  font-variant-numeric:tabular-nums; line-height:1.15}
+.facts dd small{font-size:12.5px; font-weight:400; color:var(--tocs)}
+.facts dd.sm{font-size:13.5px; font-weight:600; line-height:1.3}
+
+.map{margin:0; padding:14px 18px 16px; border-top:1px solid var(--line)}
+.map figcaption{margin-top:10px; font-size:12.5px; line-height:1.5; color:var(--tocs)}
+.planbtn{display:block; width:100%; padding:0; border:1px solid var(--line); border-radius:8px;
+  overflow:hidden; background:#fff; cursor:zoom-in; touch-action:manipulation}
+.planbtn:hover{border-color:var(--nw)}
+
+.lightbox{display:none; position:fixed; inset:0; background:rgba(10,20,24,.94); z-index:1000;
+  align-items:center; justify-content:center; padding:20px}
+.lightbox.active{display:flex}
+body.locked{overflow:hidden}
+#lbBody{width:100%; max-width:900px; display:flex; align-items:center; justify-content:center}
+
+.lb-close{position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:50%;
+  background:rgba(255,255,255,.15); border:none; color:#fff; font-size:22px; line-height:1;
+  cursor:pointer; display:flex; align-items:center; justify-content:center}
+
+.spec{margin:0; padding:0 18px 16px; border-top:1px solid var(--line);
+  display:flex; flex-wrap:wrap; gap:0 22px}
+.spec>div{padding-top:12px; min-width:6.5rem}
+.spec dt{margin:0 0 1px; font-size:11px; font-weight:600; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--tocs)}
+.spec dd{margin:0; font-size:13.5px; color:var(--toc); font-variant-numeric:tabular-nums}
+
+.again{
+  width:100%; padding:12px; border-radius:var(--radius); background:transparent;
+  border:1px solid rgba(255,255,255,0.35); color:rgba(255,255,255,0.85);
+  font-weight:600; cursor:pointer; min-height:46px; touch-action:manipulation;
+}
+.again:hover{border-color:#fff; color:#fff}
+
+.addon{
+  margin:0; padding:16px 18px; border-top:1px solid var(--line);
+  background:linear-gradient(180deg,#f3f7f8,#eef4f5);
+  font-size:16px; line-height:1.4; font-weight:700; color:var(--nw);
+  letter-spacing:-.1px; display:flex; gap:10px; align-items:flex-start;
+}
+.addon::before{
+  content:"\2713"; flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+  background:var(--nw); color:#fff; font-size:13px; line-height:22px; text-align:center;
+  font-weight:700;
+}
+
+.addon-top{
+  margin:14px 0 0; border:1px solid rgba(255,255,255,.28); border-radius:var(--radius);
+  background:rgba(255,255,255,.1); color:#fff; font-size:16px; padding:15px 16px;
+}
+.addon-top::before{background:#fff; color:var(--nw)}
+
+.checkin{
+  display:block; width:calc(100% - 36px); margin:0 18px 16px; padding:13px;
+  border:0; border-radius:8px; background:#2f9e57; color:#fff;
+  font-size:15px; font-weight:700; cursor:pointer; min-height:46px;
+}
+.checkin:hover{background:#288a4b}
+.checkin:disabled{opacity:.6; cursor:default}
+.checked{
+  margin:0 18px 16px; padding:12px 13px; border-radius:8px;
+  background:#eaf7ef; border:1px solid #2f9e57; color:#1d6b3a;
+  font-size:15px; font-weight:700; text-align:center;
+}
+.checked::before{content:"\2713  "}
+
+.route{display:block; margin:0 18px 16px; padding:11px 12px; border-radius:8px;
+  border:1px solid var(--nw); color:var(--nw); text-decoration:none; text-align:center;
+  font-size:13.5px; font-weight:600}
+.route:hover{background:var(--nw); color:#fff}
+.route::after{content:" \2197"}
+
+/* overview -------------------------------------------------------------- */
+.ov{padding:14px 18px 16px}
+.ov-site+.ov-site{margin-top:16px}
+.ov-site h3{margin:0 0 8px; font-size:13px; font-weight:700; color:var(--nw)}
+.ov-site h3 span{font-weight:500; color:var(--tocs)}
+.chips{list-style:none; margin:0; padding:0; display:grid; gap:6px;
+  grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}
+.chip{border:1px solid var(--line); border-left:4px solid #cfd6d8; border-radius:6px;
+  padding:6px 8px; display:flex; flex-direction:column; gap:1px; background:#fbfbfa}
+.chip.is-in{border-color:#2f9e57; border-left-color:#2f9e57; background:#eaf7ef}
+.chip.is-in b{color:#1d6b3a}
+.chip b{font-size:16px; font-weight:700; color:var(--nw); font-variant-numeric:tabular-nums}
+.chip span{font-size:10px; line-height:1.25; color:var(--tocs)}
+.chip.is-free{background:repeating-linear-gradient(135deg,#fff,#fff 5px,#f2f2f0 5px,#f2f2f0 10px)}
+.chip.is-free b{color:var(--tocs)}
+.ov-note{margin:14px 0 0; font-size:11.5px; color:var(--tocs)}
+.ov-h{font-size:13px; font-weight:700; color:var(--nw)}
+
+/* campsite photo -------------------------------------------------------- */
+.shot{display:block; width:100%; height:auto}
+.shot.full{width:auto; max-width:100%; max-height:88vh; border-radius:8px}
+
+/* the nudge ------------------------------------------------------------- */
+.nudge{
+  position:fixed; z-index:1200; left:1rem; right:1rem;
+  bottom:calc(1rem + env(safe-area-inset-bottom,0px));
+  max-width:400px; margin:0 auto; padding:18px 18px 16px;
+  background:var(--card); color:var(--toc); border-radius:16px;
+  box-shadow:0 18px 50px -12px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.06);
+  transform:translateY(140%); opacity:0; transition:transform .42s cubic-bezier(.16,1.05,.3,1), opacity .28s;
+}
+.nudge.up{transform:none; opacity:1}
+.nudge-icon{
+  width:46px; height:46px; border-radius:14px; background:#25d366;
+  display:flex; align-items:center; justify-content:center; margin-bottom:12px;
+  box-shadow:0 6px 18px -6px rgba(37,211,102,.9);
+}
+.nudge-icon svg{width:27px; height:27px; fill:#fff}
+.nudge-h{margin:0 0 3px; font-size:18px; font-weight:700; color:var(--nw); letter-spacing:-.2px}
+.nudge-b{margin:0 0 14px; font-size:13.5px; line-height:1.45; color:var(--tocs)}
+.nudge-cta{
+  display:block; padding:13px; border-radius:12px; background:#25d366; color:#0b3d1f;
+  text-align:center; text-decoration:none; font-size:16px; font-weight:700;
+  letter-spacing:.01em; white-space:nowrap;
+}
+.nudge-cta:hover{background:#20bd5a; color:#062e16}
+.nudge-hours{
+  margin:9px 0 0; font-size:12.5px; font-weight:600; color:var(--nw);
+  text-align:center; display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.nudge-hours::before{
+  content:""; width:7px; height:7px; border-radius:50%; background:#2f9e57; flex:0 0 auto;
+}
+.nudge-fun{
+  margin:10px 2px 0; font-size:12px; line-height:1.4; color:var(--tocs);
+  font-style:italic; text-align:center;
+}
+.nudge-x{
+  position:absolute; top:9px; right:9px; width:30px; height:30px; border:0; border-radius:50%;
+  background:rgba(0,0,0,.05); color:var(--tocs); font-size:19px; line-height:1; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.nudge-x:hover{background:rgba(0,0,0,.1); color:var(--toc)}
+@media (prefers-reduced-motion: no-preference){
+  .nudge.up .nudge-icon{animation:ping 2.4s ease-out 3}
+  @keyframes ping{
+    0%,72%,100%{transform:scale(1)}
+    78%{transform:scale(1.12)}
+    84%{transform:scale(.97)}
+    90%{transform:scale(1.05)}
+  }
+}
+@media (prefers-reduced-motion: reduce){
+  .nudge{transition:opacity .2s}
+  .nudge.up{transform:none}
+}
+
+/* callouts, help, footer ------------------------------------------------- */
+.callout{background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25);
+  border-radius:var(--radius); padding:12px 14px; margin:1.25rem 0 0; font-size:13px; line-height:1.5}
+.callout b{font-weight:700}
+.callout code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px}
+.help{margin-top:1.75rem}
+.help h2{font-size:15px; font-weight:700; margin:0 0 8px; color:var(--tp)}
+.help ul{margin:0; padding-left:1.1rem; font-size:13px; line-height:1.5; color:var(--ts)}
+.help li{margin:.35rem 0}
+.help li b{color:var(--tp); font-weight:600}
+.foot{margin-top:1.75rem; padding-top:1rem; border-top:1px solid var(--tl);
+  font-size:11.5px; line-height:1.7; color:var(--ts)}
+.wa{color:#fff; font-weight:600; text-decoration:none; border-bottom:1px solid rgba(255,255,255,.4);
+  white-space:nowrap}
+.wa:hover{border-bottom-color:#fff}
+.foot p{margin:0}
+@media (prefers-reduced-motion: no-preference){
+  #out>.card{animation:rise .28s ease both}
+  @keyframes rise{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+}
+</style>
+<div class="wrap">
+  <header class="header">
+    <img class="brand-logo" src="data:image/webp;base64,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" alt="niuway">
+    <div class="lang" role="group" aria-label="Sprache / Language">
+      <button type="button" data-lang="de" aria-pressed="true">DE</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </header>
+
+  <h1 id="h1">Tent finder</h1>
+  <p class="intro" id="intro"></p>
+
+  <form class="card finder" id="finder" novalidate>
+    <label for="email" id="lab"></label>
+    <input id="email" name="email" type="email" inputmode="email" autocomplete="email"
+           spellcheck="false" aria-describedby="msg">
+    <button type="submit" class="submit" id="go"></button>
+    <p class="msg" id="msg" role="status" aria-live="polite"></p>
+  </form>
+
+  <p class="booth" id="booth"></p>
+
+  <p class="addon addon-top" id="addonTop"></p>
+
+  <div id="out"></div>
+
+  
+
+  <section class="help">
+    <h2 id="helpH"></h2>
+    <ul id="helpL"></ul>
+  </section>
+
+  <footer class="foot"><p id="foot"></p></footer>
+</div>
+
+<div class="nudge" id="nudge" hidden>
+  <button type="button" class="nudge-x" id="nudgeX" aria-label="OK">&times;</button>
+  <div class="nudge-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.8 14.13c-.24.68-1.42 1.31-1.96 1.36-.5.05-.98.23-3.3-.69-2.78-1.1-4.55-3.95-4.69-4.13-.14-.18-1.12-1.49-1.12-2.85 0-1.35.71-2.02.96-2.29.25-.28.55-.35.73-.35.18 0 .37 0 .53.01.17.01.4-.06.62.48.24.55.8 1.9.87 2.04.07.14.12.3.02.48-.09.18-.14.29-.28.45-.14.16-.29.35-.42.47-.14.14-.28.29-.12.57.16.28.72 1.19 1.55 1.93 1.07.95 1.97 1.25 2.25 1.39.28.14.44.12.6-.07.16-.19.69-.81.88-1.09.18-.28.37-.23.62-.14.25.09 1.6.75 1.87.89.28.14.46.21.53.32.07.12.07.66-.17 1.32z"/></svg>
+  </div>
+  <p class="nudge-h" id="nudgeH"></p>
+  <p class="nudge-b" id="nudgeB"></p>
+  <a class="nudge-cta" id="nudgeCta" target="_blank" rel="noopener noreferrer"></a>
+  <p class="nudge-hours" id="nudgeHours"></p>
+  <p class="nudge-fun" id="nudgeFun"></p>
+</div>
+
+<div class="lightbox" id="lb" role="dialog" aria-modal="true">
+  <button type="button" class="lb-close" id="lbClose">&times;</button>
+  <div id="lbBody"></div>
+</div>
+<script>/* SHA-256, plain JS so the page also works from a file:// URL.
+   Verified against node crypto for ASCII and UTF-8 input. */
+function sha256(str){
+  var bytes=unescape(encodeURIComponent(str)), h=[], k=[], i, j;
+  var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+         0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+         0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+         0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+         0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+         0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+         0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+         0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  function rr(x,n){return (x>>>n)|(x<<(32-n));}
+  var len=bytes.length, bitLen=len*8, w=[], pad=bytes+"\x80";
+  while(pad.length%64!==56) pad+="\x00";
+  var words=[];
+  for(i=0;i<pad.length;i++) words[i>>2]=(words[i>>2]||0)|(pad.charCodeAt(i)<<((3-i%4)*8));
+  words.push(Math.floor(bitLen/4294967296)); words.push(bitLen|0);
+  for(j=0;j<words.length;j+=16){
+    for(i=0;i<16;i++) w[i]=words[j+i]|0;
+    for(i=16;i<64;i++){
+      var a=w[i-15], b=w[i-2];
+      w[i]=(w[i-16]+(rr(a,7)^rr(a,18)^(a>>>3))+w[i-7]+(rr(b,17)^rr(b,19)^(b>>>10)))|0;
+    }
+    var v=H.slice(0);
+    for(i=0;i<64;i++){
+      var S1=rr(v[4],6)^rr(v[4],11)^rr(v[4],25);
+      var ch=(v[4]&v[5])^((~v[4])&v[6]);
+      var t1=(v[7]+S1+ch+K[i]+w[i])|0;
+      var S0=rr(v[0],2)^rr(v[0],13)^rr(v[0],22);
+      var mj=(v[0]&v[1])^(v[0]&v[2])^(v[1]&v[2]);
+      var t2=(S0+mj)|0;
+      v=[(t1+t2)|0,v[0],v[1],v[2],(v[3]+t1)|0,v[4],v[5],v[6]];
+    }
+    for(i=0;i<8;i++) H[i]=(H[i]+v[i])|0;
+  }
+  var out="";
+  for(i=0;i<8;i++) for(j=3;j>=0;j--){ var bb=(H[i]>>(j*8))&255; out+=(bb<16?"0":"")+bb.toString(16); }
+  return out;
+}
+
+const DATA={"salt":"8aed5ecb66dd624caf89aaf18c699da4","book":{"c08cb74a5a3a587ce8be82be51363fa503ccd69e601dd9c45a96475f9e78d356":[["C9:301","pickup"],["DJK:1","pickup"],["C3:100","pickup"]],"1478fd69eab0725642b6c3181634229d7dde949db0527698047a32ce6d899849":[["C9:302",""]],"0e403681c7c0c70dd0d6df27f1cd7a9677e4e323dac513bac8f8569f47a8c553":[["C9:303",""]],"54cda7f507b3700f2bb1d8a755d6b8d6780aac04c212e9bac985f1230904d201":[["C9:304",""]],"3d0eca4e89f630d231235c2ec844df3e752cdd7a9f8a8ea908fe1ca08d1d684d":[["C9:305",""]],"38ae9cd384f1af5edd184fbf3748d9e3ff60d6ce3816b8be0b09ac8921ff5b3b":[["C9:306",""]],"e83f764b7533d3c9b71180612ff4eeeafb5bdd6bf6dd6227ca0de630a988f961":[["C9:307",""],["C9:308",""]],"c1208afc1a6831f3a9df2e2c709378d84da2ce6e7b6fcb2929f09439bf7b147c":[["C9:309",""]],"4d3f733788c5649fdf25164ce3482fdd3d71b1571aaacee4f237b2cc1441125a":[["C9:310",""]],"75c2d7d7262a3f0d768eca637fd4d3b5d8fa99df40b5093d2d4b8d3d0050becb":[["C9:311",""]],"6bd60a9f572f0a38f119ef9071c2abbbde269f4bc8bc35a274d2cbb9cf55e8db":[["C9:312",""],["C9:313",""],["C9:314",""]],"6777756c6e037a3c8d6688dd453cc6f9766fe0a67078b9fc83379427cb74cd77":[["DJK:2",""]],"2c365c010a344551d3449c7707e546f2f5c3ea7d06238f73ea4dbe15ddc2a136":[["DJK:4",""]],"20072e0bc836c59e31339819e563b1ebfaa169ddc678dd034ac9e04a122e6b48":[["DJK:5",""]],"c5e0a6d8eaa08711c279ed0ac5f1fdd512de5f33f05432b4c09b6ec6840fe549":[["DJK:6",""]],"eb3e35147baa50d5d74e37ccdfacf8c65d1e095dfd29bbedddebf9fce9fec1bf":[["DJK:7",""]],"2c890181b160fcd4839a908b47224c6b0c9228a970f43b4f906a6f0d1863237b":[["DJK:8",""]],"a5b3be56dbee34bb715ed227a8f2aa5b663a48422b87150794463cb2fb53653b":[["DJK:9",""]],"9ffa4a430641d254c172acc18b842cc055f9da606cfd35ae5807edc3dceddf8f":[["DJK:10",""]],"f5d558465971ff8d9b137d5ee6d692fdff27e982016daec7dec6439ea86cb0f5":[["DJK:11",""]],"b4283cb165bcb208d1a13992e824dbc87880d3c6e3fcf25f1b5815b2389a11f4":[["DJK:12",""]],"e35b823bf02015db0e657734c405dc2198c88c024cddc79750d7b63fe9ad9c1d":[["DJK:13",""],["DJK:14",""]],"8a0aa071ff2e0f0d86436e8a02580aa5f462a83ed675ecf4de747d3577cd8feb":[["DJK:15",""]],"c271c3d71aa3dec11ecf953d41b62b94d9715811ab3907bd38337f2337a1796b":[["DJK:16",""]],"8e44701e2d6c174943fbd04994c0b184139c9c84a32873b455cff3b4c6e40b5c":[["C3:82",""],["C3:83",""],["C3:84",""]],"5a6f8decc25fe287b85bca421eeb9244cb4127bda659ae4e97173ea9820d9432":[["C3:85",""],["C3:86",""],["C3:87",""]],"ab0f14495a70279b30f8bff8f3a04f636b5622b66619eec6c3f774af3ac3191c":[["C3:88",""]],"af36d4c2b9d95f9519ab7d32f58aed5cdb6ff74e480d44674f07c5e8e9670142":[["C3:89",""]],"96748e1e5e065e266e54673416be593d4dadbff0a5d458725867b650509e9e3f":[["C3:90",""]],"302d1b843894746f0b628909d70b3e20533179a3878326b25d80403b9ed3a2e7":[["C3:91",""]],"ff39ead4237b15f000860815036d17eabe7e8f6d9aa23112eb9d365e1eff2b4d":[["C3:92",""]],"be063e374565c3bbcbb573fbbd73ffffda22d963d9f0de8cf5ed521cdd81e2fd":[["C3:93",""]],"b80286ff686aec14a04771618a11286d5b5d1f606aa974910e5112c2f2b39c39":[["C3:94",""]],"12a74124c2f2ea19cb99a442a7b11445a356293270aef52daffdc85611b96bbe":[["C3:95",""]],"796b3076d9f3002fa88c85da9dbb33e7d992bed7a0dc4ecfdd4c8f3aefdf265f":[["C3:96",""]],"298626df4e5e2f8caaab9e527e5e841814c17e58d15a48f191131053e6b51af1":[["C3:97",""]],"0da5302d5f89f78b7c796c8347d91b30c00b569f933f1603270dbb60cbb2950b":[["C3:98",""]],"d8c71c31317fe717d994654d62e1cf71019aec75cd4ac772d5e21a935cf6b2c5":[["C3:99",""]],"428a40e224dee45feba7eb1040d5ba8911e1b606a3c22281e26c8d84f05f5676":[["C3:101",""]],"e99b4dcd718facb6f5f515e1964e910e5393ebf96a385dcb410425803b6988f5":[["C3:102",""]],"98df3d8c8678056d790fe6f6f5581bffda21f2e1f086b5c5d4e1b8eedbe831c5":[["C3:103",""]],"4676238366d6923439060c664d7e25d7e8c4d1aebe8bae5d13869f5ab22cd773":[["C3:104",""]],"237979365443a9b90c061b280bde98b570b0d5d72f18eec0d06b36afa317db58":[["C3:105",""]],"5047895d51f381e3e52c0937c411b0ba723a53813fdf9901139160ddc605abb7":[["C3:106",""]],"4b688439361a48f07e1af82c5025c3732267a10679b04871162ccaa751bd0b55":[["C3:107",""]],"965ac579ec0aead6c6cfcf52c7a46c028ea98cd88c76623f71af53ecdcc9efbb":[["C3:108",""]]},"areas":{"C3":{"key":"C3","name":"C3","tents":[{"no":"82","m":"r"},{"no":"83","m":"r"},{"no":"84","m":"r"},{"no":"85","m":"L"},{"no":"86","m":"L"},{"no":"87","m":"L"},{"no":"88","m":"r"},{"no":"89","m":"L"},{"no":"90","m":"r"},{"no":"91","m":"r"},{"no":"92","m":"?"},{"no":"93","m":"L"},{"no":"94","m":"L"},{"no":"95","m":"L"},{"no":"96","m":"r"},{"no":"97","m":"L"},{"no":"98","m":"L"},{"no":"99","m":"L"},{"no":"100","m":"X"},{"no":"101","m":"X"},{"no":"102","m":"X"},{"no":"103","m":"X"},{"no":"104","m":"X"},{"no":"105","m":"X"},{"no":"106","m":"X"},{"no":"107","m":"X"},{"no":"108","m":"X"}],"drawn":false,"geo":[49.323559,8.561514],"source":"GGF26 - Aufbauten C3.pdf","map":null},"C9":{"key":"C9","name":"C9","tents":[{"no":"301","m":"X"},{"no":"302","m":"X"},{"no":"303","m":"r"},{"no":"304","m":"r"},{"no":"305","m":"L"},{"no":"306","m":"L"},{"no":"307","m":"L"},{"no":"308","m":"L"},{"no":"309","m":"L"},{"no":"310","m":"r"},{"no":"311","m":"L"},{"no":"312","m":"L"},{"no":"313","m":"L"},{"no":"314","m":"L"}],"drawn":false,"geo":[49.323692,8.530419],"source":"GGF26 - Aufbauten C9.pdf","map":null},"DJK":{"key":"DJK","name":"Green Camping (DJK)","tents":[{"no":"1","m":"X"},{"no":"2","m":"X"},{"no":"4","m":"L"},{"no":"5","m":"L"},{"no":"6","m":"r"},{"no":"7","m":"L"},{"no":"8","m":"r"},{"no":"9","m":"L"},{"no":"10","m":"L"},{"no":"11","m":"L"},{"no":"12","m":"r"},{"no":"13","m":"L"},{"no":"14","m":"L"},{"no":"15","m":"r"},{"no":"16","m":"r"}],"drawn":false,"geo":[49.330391,8.558487],"source":"GGF26 - Aufbauten DJK.pdf","map":null}},"admins":["c08cb74a5a3a587ce8be82be51363fa503ccd69e601dd9c45a96475f9e78d356"],"overview":{"C3":{"name":"C3","tents":[{"no":"82","m":"r","pos":"Pre-Sale 2026"},{"no":"83","m":"r","pos":"Pre-Sale 2026"},{"no":"84","m":"r","pos":"Pre-Sale 2026"},{"no":"85","m":"L","pos":"GG Accounts"},{"no":"86","m":"L","pos":"GG Accounts"},{"no":"87","m":"L","pos":"GG Accounts"},{"no":"88","m":"r","pos":"GG Accounts"},{"no":"89","m":"L","pos":"GG Accounts"},{"no":"90","m":"r","pos":"Upgrades"},{"no":"91","m":"r","pos":"GG Accounts"},{"no":"92","m":"?","pos":"GG Accounts"},{"no":"93","m":"L","pos":"GG Accounts"},{"no":"94","m":"L","pos":"GG Accounts"},{"no":"95","m":"L","pos":"GG Accounts"},{"no":"96","m":"r","pos":"GG Accounts"},{"no":"97","m":"L","pos":"GG Accounts"},{"no":"98","m":"L","pos":"GG Accounts"},{"no":"99","m":"L","pos":"GG Accounts"},{"no":"100","m":"X","pos":"Pickup Tent"},{"no":"101","m":"X","pos":"GG Accounts"},{"no":"102","m":"X","pos":"GG Accounts"},{"no":"103","m":"X","pos":"Upgrades"},{"no":"104","m":"X","pos":"GG Accounts"},{"no":"105","m":"X","pos":"GG Accounts"},{"no":"106","m":"X","pos":"GG Accounts"},{"no":"107","m":"X","pos":"GG Accounts"},{"no":"108","m":"X","pos":"Guestlist"}]},"C9":{"name":"C9","tents":[{"no":"301","m":"X","pos":"Pickup Tent"},{"no":"302","m":"X","pos":"Guestlist"},{"no":"303","m":"r","pos":"GG Accounts"},{"no":"304","m":"r","pos":"GG Accounts"},{"no":"305","m":"L","pos":"GG Accounts"},{"no":"306","m":"L","pos":"GG Accounts"},{"no":"307","m":"L","pos":"GG Accounts"},{"no":"308","m":"L","pos":"GG Accounts"},{"no":"309","m":"L","pos":"GG Accounts"},{"no":"310","m":"r","pos":"GG Accounts"},{"no":"311","m":"L","pos":"GG Accounts"},{"no":"312","m":"L","pos":"GG Accounts"},{"no":"313","m":"L","pos":"GG Accounts"},{"no":"314","m":"L","pos":"GG Accounts"}]},"DJK":{"name":"Green Camping (DJK)","tents":[{"no":"1","m":"X","pos":"Pickup Tent"},{"no":"2","m":"X","pos":"GG Accounts"},{"no":"4","m":"L","pos":"GG Accounts"},{"no":"5","m":"L","pos":"GG Accounts"},{"no":"6","m":"r","pos":"GG Accounts"},{"no":"7","m":"L","pos":"GG Accounts"},{"no":"8","m":"r","pos":"GG Accounts"},{"no":"9","m":"L","pos":"GG Accounts"},{"no":"10","m":"L","pos":"Crosssell Shop"},{"no":"11","m":"L","pos":"Pre-Sale 2026"},{"no":"12","m":"r","pos":"GG Accounts"},{"no":"13","m":"L","pos":"Pre-Sale 2026"},{"no":"14","m":"L","pos":"Pre-Sale 2026"},{"no":"15","m":"r","pos":"GG Accounts"},{"no":"16","m":"r","pos":"GG Accounts"}]}},"labels":{"r":"Comfort Regular","L":"Comfort Large","X":"Comfort EXTRA Large"},"contact":{"name":"Alex","phone":"+41 76 541 13 25","wa":"41765411325","hours":"08:00–22:00"},"sample":""};
+/* Tent finder — the lookup runs entirely in the browser.
+   The page carries no e-mail addresses, only salted SHA-256 hashes. */
+(function(){
+"use strict";
+var AREAS=DATA.areas, BOOK=DATA.book, SALT=DATA.salt, MODEL=DATA.labels,
+    ADMINS=DATA.admins||[], OVERVIEW=DATA.overview||{}, SW={r:"r",L:"l",X:"x"};
+
+/* --- All guest-facing copy, German and English ---------------------------
+   T.de and T.en carry the same keys in the same order, so the two languages
+   read side by side. This is the only German in the codebase. ------------- */
+var T={
+de:{                                             /* German — shown to guests */
+  title:"Zeltfinder", h1:"Zeltfinder",
+  intro:"Trag die E-Mail-Adresse aus deiner Buchung ein — du bekommst deine Zeltnummer und dein Camping.",
+  label:"E-Mail-Adresse aus der Buchung", ph:"name@beispiel.de", submit:"Zelt finden",
+  invalid:"Das sieht nicht nach einer E-Mail-Adresse aus.",
+  none:"Zu dieser Adresse ist kein Zelt gebucht. Bitte genau die Adresse aus der Buchungsbestätigung eingeben.",
+  booth:"Der niuway-Booth steht auf Camping C5Z.",
+  wait:"Zu viele Fehlversuche. Bitte 30 Sekunden warten oder am niuway-Booth auf Camping C5Z melden.",
+  found:function(n){return n===1?"1 Zelt gefunden.":n+" Zelte gefunden.";},
+  idx:function(n,t){return "Zelt "+n+" von "+t;},
+  tent:"Zelt", sub:"Dieselbe Nummer steht auf dem Schild am Zelt.",
+  pickup:"Pickup-Zelt", pickupSub:"In diesem Zelt lagern das Material und die Zelte.",
+  allH:"Alle Zelte auf einen Blick", free:"frei",
+  allSum:function(t,b){return t+" Zelte · "+b+" belegt · "+(t-b)+" frei";},
+  allNote:"Ohne Adressen — die stehen nicht in dieser Seite.",
+  lostH:"Fragen oder Hilfe nötig?", lostB:"Schreib Alex per WhatsApp.",
+  lostFun:"Lass dich von Alex' gutem Aussehen nicht einschüchtern.",
+  hours:"Erreichbar %h",
+  addon:"Comfort-Add-on gebucht? Es liegt schon fertig für dich im Zelt.",
+  camping:"Camping", tbd:"folgt",
+  checkin:"Jetzt einchecken", checkedIn:"Eingecheckt", checkFail:"Hat nicht geklappt — nochmal versuchen.",
+  inCount:function(n){return n+" eingecheckt";},
+  tap:"Zum Vergrößern auf das Bild tippen.", close:"Schließen",
+  route:"Route in Google Maps",
+  unknown:"Diese Zeltnummer steht nicht im Lageplan. Bitte am niuway-Booth auf Camping C5Z melden.",
+  again:"Andere Adresse prüfen", helpH:"Gut zu wissen",
+  help:["Die Zeltnummer steht auf dem Schild am Zelt."],
+  demo:"<b>Demo-Daten.</b> In <code>bookings.csv</code> stehen bisher nur Beispieladressen. Zum Ausprobieren: <code>%s</code>",
+  foot:"Fragen oder Hilfe nötig? Schreib %name per WhatsApp: %wa · %hours<br>niuway · Diese Seite lädt nichts nach und speichert nichts."
+},
+en:{                                             /* English — same keys, same order */
+  title:"Tent Finder", h1:"Tent finder",
+  intro:"Enter the e-mail address you booked with — you'll get your tent number and your campsite.",
+  label:"The e-mail address you booked with", ph:"name@example.com", submit:"Find my tent",
+  invalid:"That doesn't look like an e-mail address.",
+  none:"No tent is booked to this address. Please use the exact address from your booking confirmation.",
+  booth:"The niuway booth is on campsite C5Z.",
+  wait:"Too many attempts. Please wait 30 seconds, or come to the niuway booth on campsite C5Z.",
+  found:function(n){return n===1?"1 tent found.":n+" tents found.";},
+  idx:function(n,t){return "Tent "+n+" of "+t;},
+  tent:"Tent", sub:"The same number is on the label on the tent.",
+  pickup:"Pickup tent", pickupSub:"This is the tent the materials and the tents are stored in.",
+  allH:"Every tent at a glance", free:"free",
+  allSum:function(t,b){return t+" tents · "+b+" booked · "+(t-b)+" free";},
+  allNote:"No addresses — they are not in this page.",
+  lostH:"Got a question or need help?", lostB:"Write to Alex on WhatsApp.",
+  lostFun:"Don't be intimidated by Alex's good looks.",
+  hours:"Available %h",
+  addon:"Booked a comfort add-on? It is already set up for you inside the tent.",
+  camping:"Campsite", tbd:"to follow",
+  checkin:"Check in now", checkedIn:"Checked in", checkFail:"That didn't go through — try again.",
+  inCount:function(n){return n+" checked in";},
+  tap:"Tap the picture to enlarge it.", close:"Close",
+  route:"Directions in Google Maps",
+  unknown:"This tent number is not on the site plan. Please come to the niuway booth on campsite C5Z.",
+  again:"Check another address", helpH:"Good to know",
+  help:["The tent number is on the label on the tent."],
+  demo:"<b>Demo data.</b> <code>bookings.csv</code> still holds example addresses only. Try: <code>%s</code>",
+  foot:"Got a question or need help? Write to %name on WhatsApp: %wa · %hours<br>niuway · This page loads nothing and stores nothing."
+}};
+
+var lang="de";
+try{ var st=localStorage.getItem("nw-lang"); if(st==="de"||st==="en") lang=st;
+     else if((navigator.language||"").slice(0,2).toLowerCase()!=="de") lang="en"; }
+catch(e){ if((navigator.language||"").slice(0,2).toLowerCase()!=="de") lang="en"; }
+function t(){return T[lang];}
+
+/* --- helpers ----------------------------------------------------------- */
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function el(id){return document.getElementById(id);}
+function find(key){                                   // key is "C9:301"
+  var bits=String(key).split(":"), a=AREAS[bits[0]];
+  if(!a) return null;
+  for(var i=0;i<a.tents.length;i++) if(String(a.tents[i].no)===bits[1]) return {a:a,t:a.tents[i]};
+  return null;
+}
+
+/* --- campsite photo ---------------------------------------------------- */
+function photo(a,full){
+  if(!a.plan) return "";
+  return '<img class="shot'+(full?" full":"")+'" src="'+a.plan+'" width="'+a.w+'" height="'+a.h+
+         '" alt="'+esc(a.name)+'" loading="lazy">';
+}
+
+/* --- result card ------------------------------------------------------- */
+function card(entry,n,total){
+  var key=entry[0], pickup=entry[1]==="pickup", hit=find(key), L=t();
+  if(!hit) return '<article class="card"><p class="tent-no">'+esc(String(key).split(":")[1]||"?")+'</p>'+
+                  '<p class="tent-sub">'+esc(L.unknown)+'</p></article>';
+  var a=hit.a, x=hit.t, key=a.key+":"+x.no, inn=CHECK && CHECK[key];
+  return '<article class="card'+(pickup?" is-pickup":"")+'">'+
+   (total>1 ? '<div class="res-hd"><span class="idx">'+esc(L.idx(n,total))+'</span></div>' : '')+
+   '<p class="tent-eyebrow">'+esc(pickup?L.pickup:L.tent)+'</p>'+
+   '<p class="tent-no">'+esc(x.no)+'</p>'+
+   '<p class="tent-sub">'+esc(pickup?L.pickupSub:L.sub)+'</p>'+
+   '<dl class="facts">'+
+     '<div><dt>'+esc(L.camping)+'</dt><dd>'+esc(a.key)+'</dd></div>'+
+   '</dl>'+
+   (CHECK ? (inn ? '<p class="checked">'+esc(L.checkedIn)+'</p>'
+                 : '<button type="button" class="checkin" data-key="'+esc(key)+'">'+
+                   esc(L.checkin)+'</button>') : '')+
+   '<p class="addon">'+esc(L.addon)+'</p>'+
+   (a.geo ? '<a class="route" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps?q='+
+     a.geo[0]+','+a.geo[1]+'">'+esc(L.route)+'</a>' : '')+
+   (a.plan ? '<figure class="map"><button type="button" class="planbtn" data-key="'+esc(key)+'" '+
+     'aria-label="'+esc(L.tap)+'">'+photo(a,false)+'</button>'+
+     '<figcaption>'+esc(a.name)+' · '+esc(L.tap)+'</figcaption></figure>' : '')+
+   '</article>';
+}
+
+/* --- check-in ----------------------------------------------------------
+   Needs the /api/checkin function (Vercel). Served as a plain static file
+   there is nowhere to write to, so CHECK stays null and no check-in UI is
+   rendered at all — the page still works, it just does less. -------------- */
+var CHECK=null;
+function loadCheck(){
+  return fetch("api/checkin",{headers:{Accept:"application/json"}})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){ CHECK = j && j.tents ? j.tents : null; })
+    .catch(function(){ CHECK=null; });
+}
+function checkIn(key,undo){
+  return fetch("api/checkin",{method:"POST",headers:{"Content-Type":"application/json"},
+                              body:JSON.stringify({tent:key,undo:!!undo})})
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(){
+      if(!CHECK) CHECK={};
+      if(undo) delete CHECK[key]; else CHECK[key]=Date.now();
+    });
+}
+
+/* --- overview, for the addresses in ADMINS ------------------------------ */
+function overview(){
+  var L=t(), tot=0, bk=0, inn=0, body="";
+  Object.keys(OVERVIEW).forEach(function(k){
+    var a=OVERVIEW[k], n=a.tents.length, b=0;
+    var chips=a.tents.map(function(x){
+      if(x.pos) b++;
+      var here=CHECK && CHECK[k+":"+x.no];
+      if(here) inn++;
+      return '<li class="chip'+(here?" is-in":"")+(x.pos?"":" is-free")+'">'+
+             '<b>'+esc(x.no)+'</b><span>'+esc(x.pos && x.pos!=="-" ? x.pos : (x.pos?"":L.free))+'</span></li>';
+    }).join("");
+    tot+=n; bk+=b;
+    body+='<div class="ov-site"><h3>'+esc(a.name)+' <span>'+n+'</span></h3><ul class="chips">'+chips+'</ul></div>';
+  });
+  return '<article class="card admin">'+
+    '<div class="res-hd"><span class="ov-h">'+esc(L.allH)+'</span>'+
+      '<span class="idx">'+esc(L.allSum(tot,bk))+(CHECK?" · "+esc(L.inCount(inn)):"")+'</span></div>'+
+    '<div class="ov">'+body+'<p class="ov-note">'+esc(L.allNote)+'</p></div></article>';
+}
+
+/* --- lightbox ---------------------------------------------------------- */
+function openPlan(key){
+  var hit=find(key); if(!hit || !hit.a.plan) return;
+  el("lbBody").innerHTML=photo(hit.a,true);
+  el("lbClose").setAttribute("aria-label",t().close);
+  el("lb").classList.add("active");
+  document.body.classList.add("locked");
+  el("lbClose").focus();
+}
+function closePlan(){
+  el("lb").classList.remove("active");
+  document.body.classList.remove("locked");
+  el("lbBody").innerHTML="";
+}
+el("lb").addEventListener("click",function(e){ if(e.target===el("lb")) closePlan(); });
+el("lbClose").addEventListener("click",closePlan);
+document.addEventListener("keydown",function(e){ if(e.key==="Escape") closePlan(); });
+
+/* --- render ------------------------------------------------------------ */
+var shown=null, isAdmin=false, tries=0, blockedUntil=0;
+function render(){
+  var box=el("out");
+  box.innerHTML="";
+  if(!shown) return;
+  box.innerHTML=shown.map(function(e,i){return card(e,i+1,shown.length);}).join("")+
+    (isAdmin?overview():"")+
+    '<button type="button" class="again" id="again">'+esc(t().again)+'</button>';
+  [].forEach.call(box.querySelectorAll(".planbtn"),function(b){
+    b.addEventListener("click",function(){ openPlan(b.getAttribute("data-key")); });
+  });
+  [].forEach.call(box.querySelectorAll(".checkin"),function(b){
+    b.addEventListener("click",function(){
+      b.disabled=true;
+      checkIn(b.getAttribute("data-key")).then(render).catch(function(){
+        b.disabled=false; b.textContent=t().checkFail;
+      });
+    });
+  });
+  el("again").addEventListener("click",function(){
+    shown=null; isAdmin=false; render(); el("msg").textContent=""; el("msg").className="msg";
+    el("email").value=""; el("email").focus();
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
+}
+function apply(){
+  var L=t();
+  document.documentElement.lang=lang;
+  document.title=L.title;
+  el("h1").textContent=L.h1;
+  el("intro").textContent=L.intro;
+  el("lab").textContent=L.label;
+  el("email").placeholder=L.ph;
+  el("go").textContent=L.submit;
+  el("helpH").textContent=L.helpH;
+  el("helpL").innerHTML=L.help.map(function(s){return "<li>"+s+"</li>";}).join("");
+  el("nudgeH").textContent=L.lostH;
+  el("nudgeB").textContent=L.lostB;
+  el("nudgeHours").textContent=L.hours.replace("%h",DATA.contact.hours);
+  el("nudgeFun").textContent=L.lostFun;
+  var cta=el("nudgeCta");
+  cta.href="https://wa.me/"+DATA.contact.wa;
+  cta.textContent=DATA.contact.phone;
+  var wa='<a class="wa" href="https://wa.me/'+esc(DATA.contact.wa)+'" target="_blank" '+
+         'rel="noopener noreferrer">'+esc(DATA.contact.phone)+'</a>';
+  el("foot").innerHTML=L.foot.replace("%name",esc(DATA.contact.name)).replace("%wa",wa)
+                             .replace("%hours",esc(L.hours.replace("%h",DATA.contact.hours)));
+  el("booth").textContent=L.booth;
+  el("addonTop").textContent=L.addon;
+  var d=el("demo");
+  if(d) d.innerHTML=L.demo.replace("%s",esc(DATA.sample));
+  [].forEach.call(document.querySelectorAll(".lang button"),function(b){
+    b.setAttribute("aria-pressed", String(b.getAttribute("data-lang")===lang));
+  });
+  var m=el("msg");
+  if(m.dataset.key) m.textContent = m.dataset.key==="found" ? L.found(Number(m.dataset.n)) : L[m.dataset.key];
+  render();
+}
+[].forEach.call(document.querySelectorAll(".lang button"),function(b){
+  b.addEventListener("click",function(){
+    lang=b.getAttribute("data-lang");
+    try{ localStorage.setItem("nw-lang",lang); }catch(e){}
+    apply();
+  });
+});
+
+/* --- the nudge: Alex on WhatsApp, five seconds in ----------------------- */
+var nudged=false;
+try{ nudged=sessionStorage.getItem("nw-nudge")==="1"; }catch(e){}
+function nudge(show){
+  var n=el("nudge");
+  if(show){ n.hidden=false; requestAnimationFrame(function(){ n.classList.add("up"); }); }
+  else{
+    n.classList.remove("up"); nudged=true;
+    try{ sessionStorage.setItem("nw-nudge","1"); }catch(e){}
+    setTimeout(function(){ n.hidden=true; }, 300);
+  }
+}
+el("nudgeX").addEventListener("click",function(){ nudge(false); });
+el("nudgeCta").addEventListener("click",function(){ nudge(false); });
+if(!nudged) setTimeout(function(){ if(!nudged) nudge(true); }, 5000);
+
+/* --- lookup ------------------------------------------------------------ */
+function say(key,n){
+  var m=el("msg");
+  m.dataset.key=key; if(n!==undefined) m.dataset.n=n;
+  m.className="msg"+(key==="found"?"":" bad");
+  m.textContent = key==="found" ? t().found(n) : t()[key];
+}
+el("finder").addEventListener("submit",function(ev){
+  ev.preventDefault();
+  var mail=String(el("email").value).trim().toLowerCase(), form=el("finder");
+  shown=null; isAdmin=false; render(); form.classList.remove("invalid");
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)){ form.classList.add("invalid"); say("invalid"); return; }
+  if(Date.now()<blockedUntil){ say("wait"); return; }
+  var h=sha256(SALT+mail), keys=BOOK[h];
+  isAdmin=ADMINS.indexOf(h)>=0;
+  if(!keys){
+    isAdmin=false;
+    tries++;
+    if(tries>=5){ blockedUntil=Date.now()+30000; tries=0; say("wait"); }
+    else { say("none"); }
+    form.classList.add("invalid");
+    return;
+  }
+  tries=0; shown=keys; say("found",keys.length); render();
+  el("out").firstChild.scrollIntoView({behavior:"smooth", block:"start"});
+});
+apply();
+loadCheck().then(function(){ if(CHECK) render(); });
+})();
+</script>

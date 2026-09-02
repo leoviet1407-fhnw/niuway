@@ -1,0 +1,69 @@
+campsite,tent_no,model
+# What exists per campsite and what each tent is. This file is the authority for
+# the page — the Aufbauten drawings are only cross-checked against it.
+# C9: real numbers from the organiser's list, 2026-09-02.
+# 301 and 302 are the two extra structures (pickup store, guestlist); the other
+# twelve are the 3 Regular + 9 Large the C9 drawing shows.
+C9,301,Comfort EXTRA Large
+C9,302,Comfort EXTRA Large
+C9,303,Comfort Regular
+C9,304,Comfort Regular
+C9,305,Comfort Large
+C9,306,Comfort Large
+C9,307,Comfort Large
+C9,308,Comfort Large
+C9,309,Comfort Large
+C9,310,Comfort Regular
+C9,311,Comfort Large
+C9,312,Comfort Large
+C9,313,Comfort Large
+C9,314,Comfort Large
+# Green Camping (DJK): real numbers from the organiser's list, 2026-09-02.
+# 1 is the pickup store; 2 is the Extra Large the DJK drawing shows.
+# There is no 3 in the list — see the build warning.
+DJK,1,Comfort EXTRA Large
+DJK,2,Comfort EXTRA Large
+DJK,4,Comfort Large
+DJK,5,Comfort Large
+DJK,6,Comfort Regular
+DJK,7,Comfort Large
+DJK,8,Comfort Regular
+DJK,9,Comfort Large
+DJK,10,Comfort Large
+DJK,11,Comfort Large
+DJK,12,Comfort Regular
+DJK,13,Comfort Large
+DJK,14,Comfort Large
+DJK,15,Comfort Regular
+DJK,16,Comfort Regular
+# C3: real numbers from the organiser's list, 2026-09-02.
+# 100 is the pickup store; the other 25 are the 7 Regular + 10 Large +
+# 8 EXTRA Large the C3 drawing shows. 92 came in later and its model is not
+# known yet — an empty model column means unknown, and the page says so.
+C3,82,Comfort Regular
+C3,83,Comfort Regular
+C3,84,Comfort Regular
+C3,85,Comfort Large
+C3,86,Comfort Large
+C3,87,Comfort Large
+C3,88,Comfort Regular
+C3,89,Comfort Large
+C3,90,Comfort Regular
+C3,91,Comfort Regular
+C3,92,
+C3,93,Comfort Large
+C3,94,Comfort Large
+C3,95,Comfort Large
+C3,96,Comfort Regular
+C3,97,Comfort Large
+C3,98,Comfort Large
+C3,99,Comfort Large
+C3,100,Comfort EXTRA Large
+C3,101,Comfort EXTRA Large
+C3,102,Comfort EXTRA Large
+C3,103,Comfort EXTRA Large
+C3,104,Comfort EXTRA Large
+C3,105,Comfort EXTRA Large
+C3,106,Comfort EXTRA Large
+C3,107,Comfort EXTRA Large
+C3,108,Comfort EXTRA Large

@@ -1,0 +1,19 @@
+# ---------------------------------------------------------------------------
+# This folder is the repository root. Never push the booking list.
+# ---------------------------------------------------------------------------
+bookings.csv
+
+# Working files
+__pycache__/
+.DS_Store
+*.pyc
+
+# ---------------------------------------------------------------------------
+# Deliberately NOT ignored:
+#   tents.csv    tent numbers and models — no personal data, and the build
+#                needs it
+#   salt.txt     already public inside the built page; losing it changes every
+#                hash and breaks every lookup
+#   site/        the built page and the check-in function — what Vercel serves
+#   maps/*.jpg   the campsite photos, which are embedded in the page anyway
+# ---------------------------------------------------------------------------
