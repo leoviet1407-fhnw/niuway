@@ -142,6 +142,11 @@ body.locked{overflow:hidden}
 }
 .checked::before{content:"\2713  "}
 .checked.out{margin-bottom:16px; background:#fdecea; border-color:#c0392b; color:#a3271b}
+.remind{
+  margin:0 18px 10px; padding:0 2px; font-size:13px; line-height:1.45; color:var(--tocs);
+  display:flex; gap:8px; align-items:flex-start;
+}
+.remind::before{content:"\2139"; flex:0 0 auto; font-size:13px; color:var(--nw); font-weight:700}
 .checkout{
   display:block; width:calc(100% - 36px); margin:0 18px 16px; padding:12px;
   border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--tocs);

@@ -29,6 +29,7 @@ de:{                                             /* German — shown to guests *
   camping:"Camping",
   checkin:"Jetzt einchecken", checkedIn:"Eingecheckt", checkFail:"Hat nicht geklappt — nochmal versuchen.",
   checkout:"Auschecken", checkedOut:"Ausgecheckt — gute Heimreise!",
+  remind:"Denk beim Abreisen daran, dich hier auszuchecken — dann wissen wir, dass dein Zelt frei ist.",
   coQ:"Wirklich auschecken? Danach wird dein Zelt abgebaut.",
   coYes:"Ja, auschecken", coNo:"Abbrechen",
   inCount:function(n,o){return n+" eingecheckt · "+o+" ausgecheckt";},
@@ -60,6 +61,7 @@ en:{                                             /* English — same keys, same 
   camping:"Campsite",
   checkin:"Check in now", checkedIn:"Checked in", checkFail:"That didn't go through — try again.",
   checkout:"Check out", checkedOut:"Checked out — safe trip home!",
+  remind:"Remember to check out here when you leave — that is how we know your tent is free.",
   coQ:"Check out for good? Your tent gets taken down after this.",
   coYes:"Yes, check out", coNo:"Cancel",
   inCount:function(n,o){return n+" checked in · "+o+" checked out";},
@@ -183,6 +185,7 @@ function checkBlock(key, L){
         '<button type="button" class="leave-no" data-no="'+esc(key)+'">'+esc(L.coNo)+'</button></div></div>';
     }
     return '<p class="checked">'+esc(L.checkedIn)+'</p>'+
+           '<p class="remind">'+esc(L.remind)+'</p>'+
            '<button type="button" class="checkout ask" data-ask="'+esc(key)+'">'+esc(L.checkout)+'</button>';
   }
   return '<button type="button" class="checkin" data-key="'+esc(key)+'">'+esc(L.checkin)+'</button>';

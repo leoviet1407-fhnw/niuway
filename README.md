@@ -201,7 +201,8 @@ search results; it does not make it private.
 ## Check-in and check-out
 
 A guest who looks themselves up gets **Jetzt einchecken / Check in now**. Once
-checked in, the card offers **Auschecken / Check out** — behind a confirmation,
+checked in, the card reminds them to check out when they leave and offers
+**Auschecken / Check out** — behind a confirmation,
 because it says the tent gets taken down afterwards and a mis-tap at the wrong
 moment is expensive.
 
