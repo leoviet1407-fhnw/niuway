@@ -198,13 +198,28 @@ only hashes, but someone who already knows an address can confirm it and learn
 the tent number — the same as asking at the booth. `noindex` keeps it out of
 search results; it does not make it private.
 
+## Check-in and check-out
+
+A guest who looks themselves up gets **Jetzt einchecken / Check in now**. Once
+checked in, the card offers **Auschecken / Check out** — behind a confirmation,
+because it says the tent gets taken down afterwards and a mis-tap at the wrong
+moment is expensive.
+
+In the overview a tent is neutral before arrival, **green** once checked in and
+**red** once checked out, so a red chip means "ready to dismantle". The header
+counts both.
+
+Rows are `{"i": arrived, "o": left}` in Redis. Rows written before check-out
+existed are a bare timestamp and read as arrived-only, so nothing had to be
+migrated. Checking in again after a check-out clears the check-out.
+
 ## The overview for flo@niuway.ch
 
 Addresses listed in `ADMINS` (in `gen_tent_finder.py`) get one extra card after
 looking themselves up: every tent on every campsite, with its model and sales
 channel, and a booked/free count. Read-only — a glance, not an editor.
 
-Checked-in tents are green, with a count in the header. It deliberately holds
+Checked-in tents are green, checked-out tents red, with counts in the header. It deliberately holds
 **no addresses**. Anything the page can display, anyone
 holding the file can read out of it, so the overview is limited to what is
 harmless in public: numbers, models, channels. The gate is Flo's own address,

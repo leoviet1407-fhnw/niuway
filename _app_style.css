@@ -136,11 +136,27 @@ body.locked{overflow:hidden}
 .checkin:hover{background:#288a4b}
 .checkin:disabled{opacity:.6; cursor:default}
 .checked{
-  margin:0 18px 16px; padding:12px 13px; border-radius:8px;
+  margin:0 18px 10px; padding:12px 13px; border-radius:8px;
   background:#eaf7ef; border:1px solid #2f9e57; color:#1d6b3a;
   font-size:15px; font-weight:700; text-align:center;
 }
 .checked::before{content:"\2713  "}
+.checked.out{margin-bottom:16px; background:#fdecea; border-color:#c0392b; color:#a3271b}
+.checkout{
+  display:block; width:calc(100% - 36px); margin:0 18px 16px; padding:12px;
+  border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--tocs);
+  font-size:14px; font-weight:600; cursor:pointer; min-height:44px;
+}
+.checkout:hover{border-color:#c0392b; color:#a3271b}
+.leave{margin:0 18px 16px; padding:14px; border:1px solid #c0392b; border-radius:8px;
+  background:#fdecea}
+.leave-q{margin:0 0 12px; font-size:14px; font-weight:700; color:#a3271b; line-height:1.4}
+.leave-btns{display:flex; gap:8px}
+.leave-btns .checkout{margin:0; width:auto; flex:2; background:#c0392b; border-color:#c0392b;
+  color:#fff; font-weight:700; font-size:15px}
+.leave-btns .checkout:hover{background:#a3271b; color:#fff}
+.leave-no{flex:1; padding:12px; border:1px solid rgba(0,0,0,.15); border-radius:8px;
+  background:#fff; color:var(--tocs); font-size:14px; font-weight:600; cursor:pointer}
 
 .route{display:block; margin:0 18px 16px; padding:11px 12px; border-radius:8px;
   border:1px solid var(--nw); color:var(--nw); text-decoration:none; text-align:center;
@@ -159,6 +175,9 @@ body.locked{overflow:hidden}
   padding:6px 8px; display:flex; flex-direction:column; gap:1px; background:#fbfbfa}
 .chip.is-in{border-color:#2f9e57; border-left-color:#2f9e57; background:#eaf7ef}
 .chip.is-in b{color:#1d6b3a}
+.chip.is-out{border-color:#c0392b; border-left-color:#c0392b; background:#fdecea}
+.chip.is-out b{color:#a3271b}
+.chip.is-out span{color:#a3271b}
 .chip b{font-size:16px; font-weight:700; color:var(--nw); font-variant-numeric:tabular-nums}
 .chip span{font-size:10px; line-height:1.25; color:var(--tocs)}
 .chip.is-free{background:repeating-linear-gradient(135deg,#fff,#fff 5px,#f2f2f0 5px,#f2f2f0 10px)}

@@ -28,7 +28,10 @@ de:{                                             /* German — shown to guests *
   addon:"Comfort-Add-on gebucht? Es liegt schon fertig für dich im Zelt.",
   camping:"Camping",
   checkin:"Jetzt einchecken", checkedIn:"Eingecheckt", checkFail:"Hat nicht geklappt — nochmal versuchen.",
-  inCount:function(n){return n+" eingecheckt";},
+  checkout:"Auschecken", checkedOut:"Ausgecheckt — gute Heimreise!",
+  coQ:"Wirklich auschecken? Danach wird dein Zelt abgebaut.",
+  coYes:"Ja, auschecken", coNo:"Abbrechen",
+  inCount:function(n,o){return n+" eingecheckt · "+o+" ausgecheckt";},
   tap:"Zum Vergrößern auf das Bild tippen.", close:"Schließen",
   route:"Route in Google Maps",
   unknown:"Diese Zeltnummer steht nicht im Lageplan. Bitte am niuway-Booth auf Camping C5Z melden.",
@@ -56,7 +59,10 @@ en:{                                             /* English — same keys, same 
   addon:"Booked a comfort add-on? It is already set up for you inside the tent.",
   camping:"Campsite",
   checkin:"Check in now", checkedIn:"Checked in", checkFail:"That didn't go through — try again.",
-  inCount:function(n){return n+" checked in";},
+  checkout:"Check out", checkedOut:"Checked out — safe trip home!",
+  coQ:"Check out for good? Your tent gets taken down after this.",
+  coYes:"Yes, check out", coNo:"Cancel",
+  inCount:function(n,o){return n+" checked in · "+o+" checked out";},
   tap:"Tap the picture to enlarge it.", close:"Close",
   route:"Directions in Google Maps",
   unknown:"This tent number is not on the site plan. Please come to the niuway booth on campsite C5Z.",
@@ -95,7 +101,7 @@ function card(entry,n,total){
   var key=entry[0], pickup=entry[1]==="pickup", hit=find(key), L=t();
   if(!hit) return '<article class="card"><p class="tent-no">'+esc(String(key).split(":")[1]||"?")+'</p>'+
                   '<p class="tent-sub">'+esc(L.unknown)+'</p></article>';
-  var a=hit.a, x=hit.t, key=a.key+":"+x.no, inn=CHECK && CHECK[key];
+  var a=hit.a, x=hit.t, key=a.key+":"+x.no;
   return '<article class="card'+(pickup?" is-pickup":"")+'">'+
    (total>1 ? '<div class="res-hd"><span class="idx">'+esc(L.idx(n,total))+'</span></div>' : '')+
    '<p class="tent-eyebrow">'+esc(pickup?L.pickup:L.tent)+'</p>'+
@@ -104,9 +110,7 @@ function card(entry,n,total){
    '<dl class="facts">'+
      '<div><dt>'+esc(L.camping)+'</dt><dd>'+esc(a.key)+'</dd></div>'+
    '</dl>'+
-   (CHECK ? (inn ? '<p class="checked">'+esc(L.checkedIn)+'</p>'
-                 : '<button type="button" class="checkin" data-key="'+esc(key)+'">'+
-                   esc(L.checkin)+'</button>') : '')+
+   (CHECK ? checkBlock(key, L) : '')+
    '<p class="addon">'+esc(L.addon)+'</p>'+
    (a.geo ? '<a class="route" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps?q='+
      a.geo[0]+','+a.geo[1]+'">'+esc(L.route)+'</a>' : '')+
@@ -127,26 +131,36 @@ function loadCheck(){
     .then(function(j){ CHECK = j && j.tents ? j.tents : null; })
     .catch(function(){ CHECK=null; });
 }
-function checkIn(key,undo){
+function checkIn(key,how){                 // how: "in" | "out" | "undo"
+  var body={tent:key};
+  if(how==="out") body.out=true;
+  if(how==="undo") body.undo=true;
   return fetch("api/checkin",{method:"POST",headers:{"Content-Type":"application/json"},
-                              body:JSON.stringify({tent:key,undo:!!undo})})
+                              body:JSON.stringify(body)})
     .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
     .then(function(){
       if(!CHECK) CHECK={};
-      if(undo) delete CHECK[key]; else CHECK[key]=Date.now();
+      if(how==="undo") delete CHECK[key];
+      else if(how==="out") CHECK[key]={i:(CHECK[key]&&CHECK[key].i)||Date.now(), o:Date.now()};
+      else CHECK[key]={i:Date.now()};
     });
+}
+function state(key){                       // "" | "in" | "out"
+  var r=CHECK && CHECK[key];
+  if(!r) return "";
+  return r.o ? "out" : "in";
 }
 
 /* --- overview, for the addresses in ADMINS ------------------------------ */
 function overview(){
-  var L=t(), tot=0, bk=0, inn=0, body="";
+  var L=t(), tot=0, bk=0, inn=0, out=0, body="";
   Object.keys(OVERVIEW).forEach(function(k){
     var a=OVERVIEW[k], n=a.tents.length, b=0;
     var chips=a.tents.map(function(x){
       if(x.pos) b++;
-      var here=CHECK && CHECK[k+":"+x.no];
-      if(here) inn++;
-      return '<li class="chip'+(here?" is-in":"")+(x.pos?"":" is-free")+'">'+
+      var st=state(k+":"+x.no);
+      if(st==="in") inn++; else if(st==="out") out++;
+      return '<li class="chip'+(st?" is-"+st:"")+(x.pos?"":" is-free")+'">'+
              '<b>'+esc(x.no)+'</b><span>'+esc(x.pos && x.pos!=="-" ? x.pos : (x.pos?"":L.free))+'</span></li>';
     }).join("");
     tot+=n; bk+=b;
@@ -154,8 +168,24 @@ function overview(){
   });
   return '<article class="card admin">'+
     '<div class="res-hd"><span class="ov-h">'+esc(L.allH)+'</span>'+
-      '<span class="idx">'+esc(L.allSum(tot,bk))+(CHECK?" · "+esc(L.inCount(inn)):"")+'</span></div>'+
+      '<span class="idx">'+esc(L.allSum(tot,bk))+(CHECK?" · "+esc(L.inCount(inn,out)):"")+'</span></div>'+
     '<div class="ov">'+body+'<p class="ov-note">'+esc(L.allNote)+'</p></div></article>';
+}
+
+function checkBlock(key, L){
+  var st=state(key);
+  if(st==="out") return '<p class="checked out">'+esc(L.checkedOut)+'</p>';
+  if(st==="in"){
+    if(leaving===key){
+      return '<div class="leave"><p class="leave-q">'+esc(L.coQ)+'</p>'+
+        '<div class="leave-btns"><button type="button" class="checkout" data-out="'+esc(key)+'">'+
+        esc(L.coYes)+'</button>'+
+        '<button type="button" class="leave-no" data-no="'+esc(key)+'">'+esc(L.coNo)+'</button></div></div>';
+    }
+    return '<p class="checked">'+esc(L.checkedIn)+'</p>'+
+           '<button type="button" class="checkout ask" data-ask="'+esc(key)+'">'+esc(L.checkout)+'</button>';
+  }
+  return '<button type="button" class="checkin" data-key="'+esc(key)+'">'+esc(L.checkin)+'</button>';
 }
 
 /* --- lightbox ---------------------------------------------------------- */
@@ -177,7 +207,7 @@ el("lbClose").addEventListener("click",closePlan);
 document.addEventListener("keydown",function(e){ if(e.key==="Escape") closePlan(); });
 
 /* --- render ------------------------------------------------------------ */
-var shown=null, isAdmin=false, tries=0, blockedUntil=0;
+var shown=null, isAdmin=false, leaving=null, tries=0, blockedUntil=0;
 function render(){
   var box=el("out");
   box.innerHTML="";
@@ -191,9 +221,22 @@ function render(){
   [].forEach.call(box.querySelectorAll(".checkin"),function(b){
     b.addEventListener("click",function(){
       b.disabled=true;
-      checkIn(b.getAttribute("data-key")).then(render).catch(function(){
+      checkIn(b.getAttribute("data-key"),"in").then(render).catch(function(){
         b.disabled=false; b.textContent=t().checkFail;
       });
+    });
+  });
+  [].forEach.call(box.querySelectorAll("[data-ask]"),function(b){
+    b.addEventListener("click",function(){ leaving=b.getAttribute("data-ask"); render(); });
+  });
+  [].forEach.call(box.querySelectorAll("[data-no]"),function(b){
+    b.addEventListener("click",function(){ leaving=null; render(); });
+  });
+  [].forEach.call(box.querySelectorAll("[data-out]"),function(b){
+    b.addEventListener("click",function(){
+      b.disabled=true;
+      checkIn(b.getAttribute("data-out"),"out").then(function(){ leaving=null; render(); })
+        .catch(function(){ b.disabled=false; b.textContent=t().checkFail; });
     });
   });
   el("again").addEventListener("click",function(){

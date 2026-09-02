@@ -1,4 +1,11 @@
-// Check-in store. GET returns who has checked in, POST records or undoes one.
+// Check-in store. GET returns the state of every tent, POST changes one.
+//
+//   POST {tent}              guest arrived
+//   POST {tent, out:true}    guest has left — the tent can be taken down
+//   POST {tent, undo:true}   clear the tent entirely
+//
+// A row is {"i": <arrived ms>, "o": <left ms>}. Rows written before checkout
+// existed are a bare timestamp, and are read as {"i": that}.
 //
 // Storage is Upstash Redis over its REST API — no npm packages, no build step,
 // just fetch. Add it in the Vercel dashboard under Storage and the two
@@ -31,16 +38,35 @@ module.exports = async (req, res) => {
     if (req.method === "GET") {
       const flat = (await redis(["HGETALL", KEY])) || [];
       const tents = {};
-      for (let i = 0; i < flat.length; i += 2) tents[flat[i]] = Number(flat[i + 1]) || 0;
+      for (let i = 0; i < flat.length; i += 2) {
+        const raw = flat[i + 1];
+        let row;
+        try { row = JSON.parse(raw); } catch { row = null; }
+        if (!row || typeof row !== "object") row = { i: Number(raw) || 0 };  // pre-checkout rows
+        tents[flat[i]] = row;
+      }
       return res.status(200).json({ tents });
     }
     if (req.method === "POST") {
       const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
       const tent = String(body.tent || "");
       if (!TENT.test(tent)) return res.status(400).json({ error: "bad tent" });
-      if (body.undo) await redis(["HDEL", KEY, tent]);
-      else await redis(["HSET", KEY, tent, String(Date.now())]);
-      return res.status(200).json({ tent, checked: !body.undo });
+      if (body.undo) {
+        await redis(["HDEL", KEY, tent]);
+        return res.status(200).json({ tent, state: "clear" });
+      }
+      const held = await redis(["HGET", KEY, tent]);
+      let row;
+      try { row = JSON.parse(held); } catch { row = null; }
+      if (!row || typeof row !== "object") row = held ? { i: Number(held) || Date.now() } : {};
+      if (body.out) {
+        if (!row.i) row.i = Date.now();      // left without ever checking in
+        row.o = Date.now();
+      } else {
+        row = { i: Date.now() };             // arriving again clears a previous checkout
+      }
+      await redis(["HSET", KEY, tent, JSON.stringify(row)]);
+      return res.status(200).json({ tent, state: row.o ? "out" : "in", row });
     }
     res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ error: "method not allowed" });
