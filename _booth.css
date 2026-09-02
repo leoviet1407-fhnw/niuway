@@ -4,7 +4,7 @@
   --nw:#174a5b; --bg:#174a5b; --card:#fff; --tp:#fff; --ts:rgba(255,255,255,.72);
   --tl:rgba(255,255,255,.15); --toc:#1c1c1a; --tocs:#6b6b66; --line:rgba(0,0,0,.10);
   --err:#b3261e; --ok:#2f9e57; --radius:12px;
-  --t-regular:#b96c9c; --t-basis:#d9a21f; --t-plus:#4f8f57;
+  --t-regular:#b96c9c; --t-basic:#d9a21f; --t-plus:#4f8f57;
   --font:'Barlow',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
@@ -46,7 +46,7 @@ input:focus{outline:none; border-color:var(--nw); box-shadow:0 0 0 2px rgba(23,7
   display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
 .kind{display:inline-flex; align-items:center; gap:8px; font-size:20px; font-weight:700; color:var(--nw)}
 .kind i{width:14px; height:14px; border-radius:3px; background:var(--sw)}
-.k-Regular{--sw:var(--t-regular)} .k-Basis{--sw:var(--t-basis)} .k-Plus{--sw:var(--t-plus)}
+.k-Regular{--sw:var(--t-regular)} .k-Basic{--sw:var(--t-basic)} .k-Plus{--sw:var(--t-plus)}
 .order{font-size:11.5px; color:var(--tocs); font-variant-numeric:tabular-nums}
 
 .sect{padding:14px 18px; border-bottom:1px solid var(--line)}

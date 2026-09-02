@@ -26,7 +26,7 @@ python3 gen_booth.py
 | Type | Numbers | Count | Booked |
 |---|---|---|---|
 | Regular | 124–141 | 18 | 18 — exactly full |
-| Basis | 142–170 | 29 | 27 |
+| Basic | 142–170 | 29 | 27 |
 | Plus | 171–189 | 19 (17 for guests) | 16 |
 
 177 and 178 are held for Naemi and Fredi. They show on the board as held and are
@@ -58,7 +58,7 @@ uses niuway's names. `PRODUCT_TO_POOL` in `gen_booth.py` maps between them:
 | Product | Pool | Numbers |
 |---|---|---|
 | Comfort Zelt Regular | Regular | 124–141 |
-| Comfort Zelt Large | Basis | 142–170 |
+| Comfort Zelt Large | Basic | 142–170 |
 | Comfort Zelt Extra Large | Plus | 171–189 |
 
 The build prints the booked count against each pool, so a wrong mapping shows up

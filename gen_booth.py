@@ -25,13 +25,13 @@ import csv, hashlib, html, json, os
 HERE = os.path.dirname(os.path.abspath(__file__))
 REV, DATE = "Rev 1", "2026-09-02"
 # The inventory is numbered by niuway's names; the booking export uses the
-# product names. Leo's ranges: 128-141 Regular, 142-170 Basis, 171-189 Plus.
+# product names. Leo's ranges: 124-141 Regular, 142-170 Basic, 171-189 Plus.
 # ASSUMED mapping — confirm before the booth opens.
-TYPES = ["Regular", "Basis", "Plus"]
+TYPES = ["Regular", "Basic", "Plus"]
 _BOOK = {}
 PRODUCT_TO_POOL = {
     "Regular":     "Regular",
-    "Large":       "Basis",
+    "Large":       "Basic",
     "Extra Large": "Plus",
 }
 
