@@ -75,15 +75,48 @@ el("find").addEventListener("submit",function(ev){
 });
 
 /* --- the guest card ------------------------------------------------------- */
+function poolOf(no){
+  for(var i=0;i<TENTS.length;i++) if(TENTS[i].no===no) return TENTS[i].t;
+  return null;
+}
+function minePerPool(){
+  var out={};
+  Object.keys(ASSIGN).forEach(function(no){
+    if(ASSIGN[no].h!==hitHash) return;
+    var p=poolOf(no)||"?";
+    (out[p]=out[p]||[]).push(no);
+  });
+  Object.keys(out).forEach(function(p){ out[p].sort(function(a,b){return a-b;}); });
+  return out;
+}
 function render(){
   if(!hit) return;
-  var mine=Object.keys(ASSIGN).filter(function(n){ return ASSIGN[n].h===hitHash; });
-  if(mine.length) return done(mine[0]);
+  var mine=minePerPool(), L=hit.t, done=0, want=0, blocks="";
 
-  var free=freeOf(hit.t);
-  var nums=free.map(function(t){
-    return '<li><button type="button" class="num" data-no="'+esc(t.no)+'">'+esc(t.no)+'</button></li>';
-  }).join("");
+  TYPES.forEach(function(pool){
+    var booked=L[pool]||0;
+    if(!booked) return;
+    var got=mine[pool]||[];
+    want+=booked; done+=Math.min(got.length,booked);
+    var chips=got.map(function(no){
+      return '<button type="button" class="num mine" data-rel="'+esc(no)+'" '+
+             'title="Antippen zum Freigeben">'+esc(no)+'</button>';
+    }).join("");
+    var open=booked-got.length;
+    var free=freeOf(pool);
+    var picker="";
+    if(open>0){
+      picker = free.length
+        ? '<p class="pick">Noch '+open+' zu vergeben — '+free.length+' frei:</p><ul class="nums">'+
+          free.map(function(t){ return '<li><button type="button" class="num" data-no="'+
+            esc(t.no)+'">'+esc(t.no)+'</button></li>'; }).join("")+'</ul>'
+        : '<p class="none warn">Keine freien '+esc(pool)+'-Zelte mehr.</p>';
+    }
+    blocks += '<div class="sect"><h3><span class="kind k-'+esc(pool)+'"><i></i>'+esc(pool)+
+      '</span> · '+booked+(booked>1?' Zelte':' Zelt')+'</h3>'+
+      (chips?'<div class="given">'+chips+'</div>':'')+picker+'</div>';
+  });
+
   var addons = hit.a.length
     ? '<ul class="addons">'+hit.a.map(function(a){
         return '<li><span class="qty">'+a[1]+'×</span>'+esc(a[0])+'</li>'; }).join("")+'</ul>'
@@ -91,16 +124,22 @@ function render(){
 
   el("out").innerHTML =
     '<article class="card">'+
-      '<div class="guest-hd"><span class="kind k-'+esc(hit.t)+'"><i></i>'+esc(hit.t)+'</span>'+
+      '<div class="guest-hd"><span class="tally'+(done===want?' all':'')+'">'+done+' von '+want+
+        (want>1?' Zelten':' Zelt')+' vergeben</span>'+
         (hit.o?'<span class="order">Bestellung '+esc(hit.o)+'</span>':'')+'</div>'+
       '<div class="sect"><h3>Add-ons</h3>'+addons+'</div>'+
-      '<div class="sect"><h3>Zeltnummer vergeben — '+esc(hit.t)+', '+free.length+' frei</h3>'+
-        (free.length?'<ul class="nums">'+nums+'</ul>'
-                    :'<p class="none">Keine freien '+esc(hit.t)+'-Zelte mehr.</p>')+
-      '</div></article>';
+      blocks+
+      '<div class="sect"><button type="button" class="primary" id="next">Nächster Gast</button></div>'+
+    '</article>';
 
-  [].forEach.call(el("out").querySelectorAll(".num"),function(b){
+  [].forEach.call(el("out").querySelectorAll(".num[data-no]"),function(b){
     b.addEventListener("click",function(){ assign(b.getAttribute("data-no"), b); });
+  });
+  [].forEach.call(el("out").querySelectorAll(".num[data-rel]"),function(b){
+    b.addEventListener("click",function(){ release(b.getAttribute("data-rel"), b); });
+  });
+  el("next").addEventListener("click",function(){
+    hit=null; hitHash=null; el("out").innerHTML=""; el("email").value=""; say(""); el("email").focus();
   });
   board();
 }
@@ -110,43 +149,32 @@ function assign(no, btn){
                            function(){ assign(no, btn); });
   btn.disabled=true; say("Wird vergeben …");
   post({tent:no, hash:hitHash, by:""})
-    .then(function(){ ASSIGN[no]={h:hitHash,at:Date.now()}; say(""); done(no); })
+    .then(function(){ ASSIGN[no]={h:hitHash,at:Date.now()}; say("Zelt "+no+" vergeben.","good"); render(); })
     .catch(function(e){
       btn.disabled=false;
-      if(e.code===401) { say(""); askPin("PIN falsch — nochmal versuchen.",
-                                        function(){ assign(no, btn); }); }
+      if(e.code===401) { say(""); askPin("PIN falsch — nochmal versuchen.", function(){ assign(no, btn); }); }
       else if(e.code===409){ say("Zelt "+no+" ist schon vergeben.","bad"); load().then(render); }
       else if(e.code===503){ say(e.body&&e.body.hint||"Kein Speicher konfiguriert.","bad"); }
       else say("Hat nicht geklappt: "+e.message,"bad");
     });
 }
 
-function done(no){
-  el("out").innerHTML =
-    '<article class="card"><div class="done">'+
-      '<p class="big">'+esc(no)+'</p>'+
-      '<p>'+esc(hit.t)+' · Zelt vergeben</p>'+
-      '<button type="button" class="primary" id="next">Nächster Gast</button>'+
-      '<button type="button" class="release" id="rel">Vergabe zurücknehmen</button>'+
-    '</div></article>';
-  el("next").addEventListener("click",function(){
-    hit=null; hitHash=null; el("out").innerHTML=""; el("email").value=""; say(""); el("email").focus();
-  });
-  var armed=false;
-  el("rel").addEventListener("click",function(){
-    var b=el("rel");
-    if(!armed){ armed=true; b.textContent="Wirklich freigeben?"; b.classList.add("arm");
-                setTimeout(function(){ armed=false; b.textContent="Vergabe zurücknehmen";
-                                       b.classList.remove("arm"); }, 4000); return; }
-    if(!pin()) return askPin("PIN eingeben, dann wird Zelt "+no+" freigegeben.", function(){ b.click(); b.click(); });
-    post({tent:no, release:true})
-      .then(function(){ delete ASSIGN[no]; say("Zelt "+no+" ist wieder frei.","good"); render(); })
-      .catch(function(e){
-        if(e.code===401){ say(""); askPin("PIN falsch — nochmal versuchen.", null); }
-        else say("Hat nicht geklappt: "+e.message,"bad");
-      });
-  });
-  board();
+var arming=null;
+function release(no, btn){
+  if(arming!==no){
+    arming=no; btn.classList.add("arm"); btn.textContent=no+" freigeben?";
+    setTimeout(function(){ if(arming===no){ arming=null; render(); } }, 4000);
+    return;
+  }
+  arming=null;
+  if(!pin()) return askPin("PIN eingeben, dann wird Zelt "+no+" freigegeben.",
+                           function(){ arming=no; release(no, btn); });
+  post({tent:no, release:true})
+    .then(function(){ delete ASSIGN[no]; say("Zelt "+no+" ist wieder frei.","good"); render(); })
+    .catch(function(e){
+      if(e.code===401){ say(""); askPin("PIN falsch — nochmal versuchen.", null); }
+      else say("Hat nicht geklappt: "+e.message,"bad");
+    });
 }
 
 /* --- occupancy board ------------------------------------------------------ */

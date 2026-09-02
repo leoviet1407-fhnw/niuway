@@ -3,6 +3,8 @@
 # ---------------------------------------------------------------------------
 bookings.csv
 c5z-bookings.csv
+c5z-addons.csv
+niuway_c5_checkin.xlsx
 
 # Working files
 __pycache__/

@@ -35,17 +35,34 @@ never offered for assignment. To hold another tent, put a name in
 
 ## The booking list
 
+Generated from the organiser's spreadsheet — never hand-edited:
+
 ```
-email,tent_type,addons,order_id
-anna.berger@example.com,Plus,Bettwäsche x2; Kühlbox x1,900001
-tobias.klein@example.com,Basis,Bettwäsche x1,900002
-lena.hofmann@example.com,Regular,,900003
+python3 import_c5z.py        # reads ../niuway_c5_checkin.xlsx
+python3 gen_booth.py
 ```
 
-`tent_type` is `Regular`, `Basis` or `Plus`. `addons` is a semicolon-separated
-list, each `Name xN` — leave it empty for none. No tent number: the booth
-assigns that on arrival. The file currently holds three demo rows; replace them
-with the organiser's export.
+`import_c5z.py` writes `c5z-bookings.csv` (one line per tent, so a guest with
+three tents has three lines) and `c5z-addons.csv` (one line per add-on with its
+quantity). Both are git-ignored: they carry real addresses. Re-run both scripts
+whenever the sheet changes.
+
+A guest can hold several tents of mixed types. The screen groups them by type
+and assigns one number per tent, tracking "2 von 4 Zelten vergeben".
+
+## Type names
+
+The sheet sells `Comfort Zelt Regular / Large / Extra Large C5Z`. The numbering
+uses niuway's names. `PRODUCT_TO_POOL` in `gen_booth.py` maps between them:
+
+| Product | Pool | Numbers |
+|---|---|---|
+| Comfort Zelt Regular | Regular | 128–141 |
+| Comfort Zelt Large | Basis | 142–170 |
+| Comfort Zelt Extra Large | Plus | 171–189 |
+
+**This mapping is assumed, not confirmed.** The build prints the booked count
+against each pool, so a wrong guess shows up immediately as a shortfall.
 
 ## The PIN
 
