@@ -13,6 +13,15 @@ the original logo.
 > Everything in this folder is English except the guest-facing German strings in
 > `_app.js` (object `T.de`), which are mirrored one-to-one by `T.en`.
 
+## Two pages
+
+| Page | Who | Built by |
+|---|---|---|
+| `index.html` | guests — C3, C9, Green Camping | `gen_tent_finder.py` |
+| `booth.html` | staff at the C5Z booth | `gen_booth.py` — see `BOOTH.md` |
+
+They share the salt, the logo and the SHA-256 helper, nothing else.
+
 ## The repository
 
 **Push this `app` folder — it is the repository root.** It is self-contained:

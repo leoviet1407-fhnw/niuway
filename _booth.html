@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#174a5b">
+<meta name="robots" content="noindex">
+<title>C5Z Check-in · niuway</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap">
+<style>__CSS__</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="header">
+    <div class="brand"><img class="brand-logo" src="__LOGO__" alt="niuway"><span>C5Z Check-in</span></div>
+    <button type="button" class="ghost" id="boardBtn">Belegung</button>
+  </header>
+
+  <form class="card find" id="find">
+    <label for="email">E-Mail des Gasts</label>
+    <input id="email" type="email" inputmode="email" autocomplete="off" spellcheck="false"
+           placeholder="name@beispiel.de" aria-describedby="msg">
+    <button type="submit" class="primary" id="go">Buchung suchen</button>
+    <p class="msg" id="msg" role="status" aria-live="polite"></p>
+  </form>
+
+  <div id="out"></div>
+
+  <section class="card board" id="board" hidden>
+    <div class="board-hd"><b>Belegung C5Z</b><span id="boardSum"></span></div>
+    <div id="boardBody"></div>
+  </section>
+
+  <footer class="foot">
+    <p><span id="pinState"></span> · <button type="button" class="link" id="pinBtn">PIN ändern</button></p>
+    <p>niuway · C5Z · Rev 1 · 2026-09-02</p>
+  </footer>
+</div>
+<script>__SHA__
+const DATA=__DATA__;
+__JS__</script>
+</body>
+</html>
