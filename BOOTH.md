@@ -90,10 +90,14 @@ booth rather than finds in their tent. The screen shows it first, in a yellow
 block headed **Abholen — jetzt mitgeben**, above the add-ons that are already
 set up in the tent.
 
-Most pick-up guests have no pitched tent at all — they collect equipment, in some
-cases a tent to put up themselves. Their card says **Nur Abholung — kein
-Stellplatz** and offers no numbers. Two of the fifteen also have a pitch, and get
-both.
+**A collected tent is never given a pitch number.** Seven of the pick-up rows are
+tents — 5 Zelt Large, 2 Zelt Regular — and those guests carry them away and pitch
+them themselves. They are handed stock, not a place on the field. The booth shows
+them under Abholen and offers no numbers at all, and the guest page tells them
+there is no pitch number rather than promising one at the booth.
+
+Most pick-up guests have no pitched tent at all. Their card says **Nur Abholung —
+kein Stellplatz**. Two of the fifteen also have a pitch, and get both.
 
 This file also carries the guests' names, which is why the booth now shows one.
 

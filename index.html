@@ -421,6 +421,7 @@ de:{                                             /* German — shown to guests *
   camping:"Camping",
   c5zTitle:"Camping C5Z", c5zBooked:"Gebucht",
   c5zNo:"Deine Zeltnummer bekommst du am niuway-Booth auf C5Z.",
+  c5zPickOnly:"Du holst alles am niuway-Booth auf C5Z ab — es gibt keine feste Zeltnummer.",
   c5zGot:function(n){return n.length>1?"Deine Zelte: "+n.join(", "):"Dein Zelt: "+n[0];},
   pickH:"Am Booth abholen", pickNone:"Nichts abzuholen.",
   addonH:"Add-ons — liegen schon im Zelt",
@@ -458,6 +459,7 @@ en:{                                             /* English — same keys, same 
   camping:"Campsite",
   c5zTitle:"Campsite C5Z", c5zBooked:"Booked",
   c5zNo:"You get your tent number at the niuway booth on C5Z.",
+  c5zPickOnly:"You collect everything at the niuway booth on C5Z — there is no pitch number.",
   c5zGot:function(n){return n.length>1?"Your tents: "+n.join(", "):"Your tent: "+n[0];},
   pickH:"Collect at the booth", pickNone:"Nothing to collect.",
   addonH:"Add-ons — already set up in the tent",
@@ -607,6 +609,8 @@ function loadAssigned(hash){
 }
 function c5zCard(g){
   var L=t();
+  // no pitched tent means nothing will ever be assigned: they carry theirs away
+  var pitched=Object.keys(g.t||{}).length>0;
   var booked=Object.keys(g.t||{}).map(function(k){ return (g.t[k]>1?g.t[k]+"× ":"")+k; }).join(" · ");
   var pick = (g.p&&g.p.length)
     ? '<ul class="picklist">'+g.p.map(function(a){
@@ -621,7 +625,7 @@ function c5zCard(g){
     (ASSIGNED.length
       ? '<p class="tent-no">'+esc(ASSIGNED.join(" · "))+'</p>'+
         '<p class="tent-sub">'+esc(L.sub)+'</p>'
-      : '<p class="c5z-wait">'+esc(L.c5zNo)+'</p>')+
+      : '<p class="c5z-wait">'+esc(pitched ? L.c5zNo : L.c5zPickOnly)+'</p>')+
     (booked?'<dl class="facts"><div><dt>'+esc(L.c5zBooked)+'</dt><dd class="sm">'+
       esc(booked)+'</dd></div></dl>':'')+
     '<div class="pickbox"><h3>'+esc(L.pickH)+'</h3>'+pick+'</div>'+
