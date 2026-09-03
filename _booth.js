@@ -64,10 +64,20 @@ function closeHits(){
   el("hits").hidden=true; el("hits").innerHTML="";
   el("email").setAttribute("aria-expanded","false");
 }
-function showHits(list){
+function mark(text,q){                    // show why a row matched
+  var i=text.toLowerCase().indexOf(q);
+  if(i<0) return esc(text);
+  return esc(text.slice(0,i))+"<mark>"+esc(text.slice(i,i+q.length))+"</mark>"+esc(text.slice(i+q.length));
+}
+function showHits(list,q){
   if(!list.length) return closeHits();
-  el("hits").innerHTML=list.map(function(m){
-    return '<li role="option"><button type="button" data-mail="'+esc(m)+'">'+esc(m)+'</button></li>';
+  el("hits").innerHTML=list.map(function(r){
+    var mail=r.m||r, name=r.n||"", what=r.k||"";
+    return '<li role="option"><button type="button" data-mail="'+esc(mail)+'">'+
+      (name?'<span class="h-name">'+mark(name,q)+'</span>':'')+
+      '<span class="h-mail">'+mark(mail,q)+'</span>'+
+      (what?'<span class="h-what">'+esc(what)+'</span>':'')+
+      '</button></li>';
   }).join("");
   el("hits").hidden=false;
   el("email").setAttribute("aria-expanded","true");
@@ -84,7 +94,7 @@ function search(q){
   var seq=++hitsSeq;
   fetch("api/directory?pin="+encodeURIComponent(pin())+"&q="+encodeURIComponent(q))
     .then(function(r){ return r.ok?r.json():null; })
-    .then(function(j){ if(seq===hitsSeq) showHits((j&&j.matches)||[]); })
+    .then(function(j){ if(seq===hitsSeq) showHits((j&&j.matches)||[], q); })
     .catch(closeHits);
 }
 el("email").addEventListener("input",function(){

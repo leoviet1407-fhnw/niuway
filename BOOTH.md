@@ -108,13 +108,18 @@ This file also carries the guests' names, which is why the booth now shows one.
 
 ## Searching for a guest
 
-Two letters into the address field and matching addresses drop down; tap one and
-the booking opens. Prefix matches come first, so typing a surname finds it
-before the domains do.
+Two letters into the field and matching guests drop down — **by name or by
+address**, since staff hear a name and read an address. Each row shows the name
+where known, the address, and a tag saying what that guest has: `4 Zelte`,
+`Nur Abholung`, `1 Zelt + Abholung`. The matched letters are highlighted.
+
+That tag is what tells two Vanessas apart: Vanessa Kurtz has four pitched tents,
+Vanessa Paulheim only collects a chair and a table.
 
 The matching happens on the server, in `api/directory.js`, because `booth.html`
-holds no addresses to match against. The list lives in Redis behind the PIN and
-is seeded from the booking file:
+holds no addresses to match against. The list lives in Redis behind the PIN and is seeded from **both** booking files
+— pitched tents and pick-up-only guests, or the pick-up-only ones cannot be
+found at all:
 
 ```
 python3 seed_directory.py <pin>
