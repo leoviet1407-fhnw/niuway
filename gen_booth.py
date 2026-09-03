@@ -80,11 +80,14 @@ def bookings(salt, inventory):
             g = by_mail.get(mail)
             if not g:                        # an add-on with no tent on C5Z
                 bad.append((mail, "add-on %s without a C5Z tent" % name)); continue
-            for row in g["a"]:
+            # On C5Z nothing is laid out in the tent: every add-on is collected
+            # at the booth, so it goes straight into the pick-up list.
+            g.setdefault("p", [])
+            for row in g["p"]:
                 if row[0] == name:
                     row[1] += qty; break
             else:
-                g["a"].append([name, qty])
+                g["p"].append([name, qty])
 
     # Pick-up guests: some have a pitched tent, most do not. Either way they
     # turn up at the booth, so they have to be findable there.

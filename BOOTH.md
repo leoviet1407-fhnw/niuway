@@ -85,10 +85,14 @@ Without `BOOTH_PIN` set, assignment answers 503 with a message saying so.
 
 ## Pick-up items
 
-`c5z-pickup.csv` (`email,first,last,item,qty`) is what a guest collects at the
-booth rather than finds in their tent. The screen shows it first, in a yellow
-block headed **Abholen — jetzt mitgeben**, above the add-ons that are already
-set up in the tent.
+**On C5Z nothing is laid out in the tent.** Every add-on is collected at the
+booth, which is the opposite of C3, C9 and Green Camping, where add-ons are
+prepared inside the tent before the guest arrives.
+
+So the screen has one handover list, headed **Abholen — jetzt mitgeben**, and it
+merges two sources: the add-ons on the main export and the rows in
+`c5z-pickup.csv` (`email,first,last,item,qty`). Quantities of the same item are
+added together.
 
 **A collected tent is never given a pitch number.** Seven of the pick-up rows are
 tents — 5 Zelt Large, 2 Zelt Regular — and those guests carry them away and pitch
@@ -101,7 +105,7 @@ kein Stellplatz**. Two of the fifteen also have a pitch, and get both.
 
 This file also carries the guests' names, which is why the booth now shows one.
 
-> **The current file is transcribed from a screenshot, not exported.** Two of the
+> **The pick-up file is transcribed from a screenshot, not exported.** Two of the
 > fifteen addresses are confirmed against `c5z-bookings.csv`; the other thirteen
 > appear nowhere else, so a single mistyped character would hide that guest with
 > no error. Replace it with the real export.

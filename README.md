@@ -13,6 +13,15 @@ the original logo.
 > Everything in this folder is English except the guest-facing German strings in
 > `_app.js` (object `T.de`), which are mirrored one-to-one by `T.en`.
 
+## Where add-ons live
+
+On **C3, C9 and Green Camping** add-ons are prepared inside the tent before the
+guest arrives, which is what the standing "Comfort-Add-on gebucht?" line says.
+
+On **C5Z** nothing is laid out: every add-on is collected at the booth. The C5Z
+card therefore shows one handover list and the page-wide add-on banner is hidden
+for those guests, because for them it would be wrong.
+
 ## Two pages
 
 | Page | Who | Built by |

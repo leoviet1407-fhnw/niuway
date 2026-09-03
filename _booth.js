@@ -172,15 +172,11 @@ function render(){
       (chips?'<div class="given">'+chips+'</div>':'')+picker+'</div>';
   });
 
-  var addons = hit.a.length
-    ? '<ul class="addons">'+hit.a.map(function(a){
-        return '<li><span class="qty">'+a[1]+'×</span>'+esc(a[0])+'</li>'; }).join("")+'</ul>'
-    : '<p class="none">Keine Add-ons gebucht.</p>';
   var pick = (hit.p && hit.p.length)
     ? '<div class="sect pickup"><h3>Abholen — jetzt mitgeben</h3><ul class="addons big">'+
       hit.p.map(function(a){
         return '<li><span class="qty">'+a[1]+'×</span>'+esc(a[0])+'</li>'; }).join("")+'</ul></div>'
-    : "";
+    : '<div class="sect pickup"><h3>Abholen</h3><p class="none">Nichts abzuholen.</p></div>';
 
   el("out").innerHTML =
     '<article class="card">'+
@@ -191,7 +187,6 @@ function render(){
               : 'Nur Abholung — kein Stellplatz')+'</span>'+
         (hit.o?'<span class="order">Bestellung '+esc(hit.o)+'</span>':'')+'</div>'+
       pick+
-      '<div class="sect"><h3>Add-ons — liegen schon im Zelt</h3>'+addons+'</div>'+
       blocks+
       '<div class="sect"><button type="button" class="primary" id="next">Nächster Gast</button></div>'+
     '</article>';

@@ -225,10 +225,7 @@ function c5zCard(g){
     ? '<ul class="picklist">'+g.p.map(function(a){
         return '<li><span class="pq">'+a[1]+'×</span>'+esc(a[0])+'</li>'; }).join("")+'</ul>'
     : '<p class="tent-sub" style="padding:0">'+esc(L.pickNone)+'</p>';
-  var addons = (g.a&&g.a.length)
-    ? '<ul class="picklist quiet">'+g.a.map(function(a){
-        return '<li><span class="pq">'+a[1]+'×</span>'+esc(a[0])+'</li>'; }).join("")+'</ul>'
-    : "";
+
   return '<article class="card">'+
     '<p class="tent-eyebrow">'+esc(L.c5zTitle)+'</p>'+
     (ASSIGNED.length
@@ -238,7 +235,6 @@ function c5zCard(g){
     (booked?'<dl class="facts"><div><dt>'+esc(L.c5zBooked)+'</dt><dd class="sm">'+
       esc(booked)+'</dd></div></dl>':'')+
     '<div class="pickbox"><h3>'+esc(L.pickH)+'</h3>'+pick+'</div>'+
-    (addons?'<div class="pickbox quiet"><h3>'+esc(L.addonH)+'</h3>'+addons+'</div>':'')+
     (a_geo()?'<a class="route" target="_blank" rel="noopener noreferrer" href="'+a_geo()+'">'+
       esc(L.route)+'</a>':'')+
     '</article>';
@@ -269,6 +265,7 @@ function render(){
   var box=el("out");
   box.innerHTML="";
   if(c5zHit){
+    el("addonTop").hidden=true;            // nothing is laid out in a C5Z tent
     box.innerHTML=c5zCard(c5zHit)+
       '<button type="button" class="again" id="again">'+esc(t().again)+'</button>';
     el("again").addEventListener("click",function(){
@@ -277,6 +274,7 @@ function render(){
     });
     return;
   }
+  el("addonTop").hidden=false;
   if(!shown) return;
   box.innerHTML=shown.map(function(e,i){return card(e,i+1,shown.length);}).join("")+
     (isAdmin?overview():"")+
