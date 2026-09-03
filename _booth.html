@@ -27,8 +27,12 @@
 
   <form class="card find" id="find">
     <label for="email">E-Mail des Gasts</label>
-    <input id="email" type="email" inputmode="email" autocomplete="off" spellcheck="false"
-           placeholder="name@beispiel.de" aria-describedby="msg">
+    <div class="typeahead">
+      <input id="email" type="email" inputmode="email" autocomplete="off" spellcheck="false"
+             placeholder="Ein paar Buchstaben genügen" aria-describedby="msg"
+             role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hits">
+      <ul class="hits" id="hits" role="listbox" hidden></ul>
+    </div>
     <button type="submit" class="primary" id="go">Buchung suchen</button>
     <p class="msg" id="msg" role="status" aria-live="polite"></p>
   </form>

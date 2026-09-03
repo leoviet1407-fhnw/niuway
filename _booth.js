@@ -56,6 +56,45 @@ function freeOf(kind){
   return TENTS.filter(function(t){ return t.t===kind && !t.r && !ASSIGN[t.no]; });
 }
 
+/* --- type-ahead ----------------------------------------------------------
+   The page has no addresses, so matching happens on the server, behind the
+   pin. Two letters is enough; the endpoint puts prefix matches first. ------ */
+var hitsTimer=null, hitsSeq=0;
+function closeHits(){
+  el("hits").hidden=true; el("hits").innerHTML="";
+  el("email").setAttribute("aria-expanded","false");
+}
+function showHits(list){
+  if(!list.length) return closeHits();
+  el("hits").innerHTML=list.map(function(m){
+    return '<li role="option"><button type="button" data-mail="'+esc(m)+'">'+esc(m)+'</button></li>';
+  }).join("");
+  el("hits").hidden=false;
+  el("email").setAttribute("aria-expanded","true");
+  [].forEach.call(el("hits").querySelectorAll("button"),function(b){
+    b.addEventListener("click",function(){
+      el("email").value=b.getAttribute("data-mail");
+      closeHits();
+      el("find").requestSubmit();
+    });
+  });
+}
+function search(q){
+  if(!pin() || q.length<2) return closeHits();
+  var seq=++hitsSeq;
+  fetch("api/directory?pin="+encodeURIComponent(pin())+"&q="+encodeURIComponent(q))
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(j){ if(seq===hitsSeq) showHits((j&&j.matches)||[]); })
+    .catch(closeHits);
+}
+el("email").addEventListener("input",function(){
+  var q=el("email").value.trim().toLowerCase();
+  clearTimeout(hitsTimer);
+  hitsTimer=setTimeout(function(){ search(q); }, 140);
+});
+el("email").addEventListener("blur",function(){ setTimeout(closeHits, 180); });
+document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeHits(); });
+
 /* --- lookup --------------------------------------------------------------- */
 el("find").addEventListener("submit",function(ev){
   ev.preventDefault();
@@ -70,7 +109,7 @@ el("find").addEventListener("submit",function(ev){
     el("find").classList.add("invalid");
     return say("Keine C5Z-Buchung zu dieser Adresse.","bad");
   }
-  hit=b; hitHash=h; hitMail=mail; confirming=null; say("");
+  hit=b; hitHash=h; hitMail=mail; confirming=null; closeHits(); say("");
   load().then(render);
 });
 

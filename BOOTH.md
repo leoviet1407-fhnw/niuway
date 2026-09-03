@@ -83,6 +83,27 @@ phone at the booth needs the same picture and the page holds no addresses.
 
 Without `BOOTH_PIN` set, assignment answers 503 with a message saying so.
 
+## Searching for a guest
+
+Two letters into the address field and matching addresses drop down; tap one and
+the booking opens. Prefix matches come first, so typing a surname finds it
+before the domains do.
+
+The matching happens on the server, in `api/directory.js`, because `booth.html`
+holds no addresses to match against. The list lives in Redis behind the PIN and
+is seeded from the booking file:
+
+```
+python3 seed_directory.py <pin>
+```
+
+Re-run that whenever the booking list changes. Without it the field still works
+— staff type the full address as before.
+
+**The PIN is the only thing protecting that list.** A four-digit PIN is ten
+thousand guesses against an endpoint that returns real addresses; a longer
+`BOOTH_PIN` is worth the one time each phone types it.
+
 ## The list of who is where
 
 **Belegung** shows every assigned tent with the guest's address, above the grid

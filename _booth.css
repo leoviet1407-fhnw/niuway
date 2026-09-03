@@ -32,6 +32,16 @@ input{width:100%; padding:13px 12px; border-radius:8px; border:1px solid rgba(0,
   font-family:var(--font); font-size:17px; color:var(--toc); background:#fff}
 input:focus{outline:none; border-color:var(--nw); box-shadow:0 0 0 2px rgba(23,74,91,.15)}
 .invalid input{border-color:var(--err)}
+.typeahead{position:relative}
+.hits{position:absolute; z-index:20; left:0; right:0; top:calc(100% + 4px); margin:0; padding:6px;
+  list-style:none; background:#fff; border:1px solid var(--line); border-radius:10px;
+  box-shadow:0 12px 30px -10px rgba(0,0,0,.35); max-height:16rem; overflow-y:auto}
+.hits li{margin:0}
+.hits button{display:block; width:100%; text-align:left; padding:11px 10px; border:0;
+  border-radius:7px; background:none; font-size:15px; color:var(--toc); cursor:pointer;
+  word-break:break-all; min-height:44px}
+.hits button:hover,.hits button:focus-visible{background:#eef4f5; color:var(--nw); outline:none}
+
 .primary{display:block; width:100%; margin-top:12px; padding:14px; border:1px solid var(--nw);
   border-radius:var(--radius); background:var(--nw); color:#fff; font-size:16px; font-weight:700;
   cursor:pointer; min-height:50px}
