@@ -13,7 +13,7 @@
 // is stored here only when a tent is actually assigned, so the "who is where"
 // list can be read back. That list is the one thing this endpoint will not hand
 // out without the pin: an open GET returns hashes only.
-const URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const STORE = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 const PIN = process.env.BOOTH_PIN;
 const KEY = "ggf26:c5z:assign";
@@ -21,7 +21,7 @@ const TENT = /^[0-9]{1,4}$/;
 const HASH = /^[a-f0-9]{64}$/;
 
 async function redis(command) {
-  const r = await fetch(URL, {
+  const r = await fetch(STORE, {
     method: "POST",
     headers: { Authorization: "Bearer " + TOKEN, "Content-Type": "application/json" },
     body: JSON.stringify(command),
@@ -32,7 +32,7 @@ async function redis(command) {
 
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
-  if (!URL || !TOKEN) {
+  if (!STORE || !TOKEN) {
     return res.status(503).json({ error: "no store configured",
       hint: "Add Upstash Redis in Vercel → Storage, then redeploy." });
   }

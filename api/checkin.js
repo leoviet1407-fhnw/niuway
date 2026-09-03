@@ -13,13 +13,13 @@
 //
 // With no store configured this answers 503 and the page hides check-in
 // entirely, so the site keeps working as a plain static file.
-const URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const STORE = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 const KEY = "ggf26:checkin";
 const TENT = /^[A-Z0-9]{1,6}:[A-Za-z0-9-]{1,8}$/;   // "C3:95"
 
 async function redis(command) {
-  const r = await fetch(URL, {
+  const r = await fetch(STORE, {
     method: "POST",
     headers: { Authorization: "Bearer " + TOKEN, "Content-Type": "application/json" },
     body: JSON.stringify(command),
@@ -30,7 +30,7 @@ async function redis(command) {
 
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
-  if (!URL || !TOKEN) {
+  if (!STORE || !TOKEN) {
     return res.status(503).json({ error: "no store configured",
       hint: "Add Upstash Redis in Vercel → Storage, then redeploy." });
   }

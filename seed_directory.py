@@ -7,7 +7,7 @@ Re-run it whenever the booking list changes.
 
     python3 seed_directory.py <pin> [https://niuway.vercel.app]
 """
-import csv, json, os, sys, urllib.request
+import csv, json, os, ssl, sys, urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -28,7 +28,14 @@ def main():
     body = json.dumps({"pin": pin, "entries": emails()}).encode()
     req = urllib.request.Request(base + "/api/directory", data=body,
                                  headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req) as r:
+    # This python.org build ships without a CA bundle, so fall back to certifi
+    # rather than failing the handshake. See mail/SETUP.md, step 0.
+    ctx = ssl.create_default_context()
+    try:
+        ctx.load_verify_locations(__import__("certifi").where())
+    except Exception:
+        pass
+    with urllib.request.urlopen(req, context=ctx) as r:
         print(base, "->", r.read().decode())
 
 

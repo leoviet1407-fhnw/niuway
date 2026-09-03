@@ -9,14 +9,14 @@
 //
 // The pin is the whole protection for this list. Use a long one: a four-digit
 // pin is ten thousand guesses, and this endpoint returns real addresses.
-const URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const STORE = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 const PIN = process.env.BOOTH_PIN;
 const KEY = "ggf26:c5z:directory";
 const LIMIT = 15;
 
 async function redis(command) {
-  const r = await fetch(URL, {
+  const r = await fetch(STORE, {
     method: "POST",
     headers: { Authorization: "Bearer " + TOKEN, "Content-Type": "application/json" },
     body: JSON.stringify(command),
@@ -27,7 +27,7 @@ async function redis(command) {
 
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
-  if (!URL || !TOKEN) return res.status(503).json({ error: "no store configured" });
+  if (!STORE || !TOKEN) return res.status(503).json({ error: "no store configured" });
   if (!PIN) return res.status(503).json({ error: "no pin set" });
 
   try {
