@@ -10,6 +10,7 @@ Inputs:
   c5z-tents.csv      the inventory: tent_no, type, reserved_for
   c5z-bookings.csv   email, tent_type, order_id, checkin — one line per tent
   c5z-addons.csv     email, addon, qty, order_id
+  c5z-pickup.csv     email, first, last, item, qty — collected at the booth
   salt.txt           the same salt as the guest page
 
 Both booking files come from import_c5z.py. A guest can hold several tents, of
@@ -85,6 +86,26 @@ def bookings(salt, inventory):
             else:
                 g["a"].append([name, qty])
 
+    # Pick-up guests: some have a pitched tent, most do not. Either way they
+    # turn up at the booth, so they have to be findable there.
+    if os.path.exists(os.path.join(HERE, "c5z-pickup.csv")):
+        for r in rows("c5z-pickup.csv"):
+            mail = r[0].lower()
+            first, last = (r[1] if len(r) > 1 else ""), (r[2] if len(r) > 2 else "")
+            item = r[3] if len(r) > 3 else ""
+            try:
+                qty = int(r[4]) if len(r) > 4 and r[4] else 1
+            except ValueError:
+                qty = 1
+            g = by_mail.setdefault(mail, {"t": {}, "a": [], "o": ""})
+            g.setdefault("p", [])
+            g["n"] = (first + " " + last).strip() or g.get("n", "")
+            for row in g["p"]:
+                if row[0] == item:
+                    row[1] += qty; break
+            else:
+                g["p"].append([item, qty])
+
     book = {hashlib.sha256((salt + m).encode()).hexdigest(): g for m, g in by_mail.items()}
     global _BOOK
     _BOOK = book
@@ -115,8 +136,9 @@ if __name__ == "__main__":
     path, inv, n, ntents, bad = build()
     book = _BOOK
     free = [t for t in inv if not t["r"]]
-    print("booth.html — %d tents, %d assignable, %d guests / %d booked tents"
-          % (len(inv), len(free), n, ntents))
+    npick = sum(1 for g in book.values() if g.get("p"))
+    print("booth.html — %d tents, %d assignable, %d guests / %d booked tents, %d with pick-up"
+          % (len(inv), len(free), n, ntents, npick))
     import json as _j
     booked = {}
     for g in _j.loads(_j.dumps(list(book.values()))) if False else []:

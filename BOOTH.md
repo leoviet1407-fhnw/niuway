@@ -83,6 +83,25 @@ phone at the booth needs the same picture and the page holds no addresses.
 
 Without `BOOTH_PIN` set, assignment answers 503 with a message saying so.
 
+## Pick-up items
+
+`c5z-pickup.csv` (`email,first,last,item,qty`) is what a guest collects at the
+booth rather than finds in their tent. The screen shows it first, in a yellow
+block headed **Abholen — jetzt mitgeben**, above the add-ons that are already
+set up in the tent.
+
+Most pick-up guests have no pitched tent at all — they collect equipment, in some
+cases a tent to put up themselves. Their card says **Nur Abholung — kein
+Stellplatz** and offers no numbers. Two of the fifteen also have a pitch, and get
+both.
+
+This file also carries the guests' names, which is why the booth now shows one.
+
+> **The current file is transcribed from a screenshot, not exported.** Two of the
+> fifteen addresses are confirmed against `c5z-bookings.csv`; the other thirteen
+> appear nowhere else, so a single mistyped character would hide that guest with
+> no error. Replace it with the real export.
+
 ## Searching for a guest
 
 Two letters into the address field and matching addresses drop down; tap one and

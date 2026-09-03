@@ -96,8 +96,13 @@ input:focus{outline:none; border-color:var(--nw); box-shadow:0 0 0 2px rgba(23,7
 .who b{min-width:38px; font-size:16px; color:var(--nw); font-variant-numeric:tabular-nums}
 .who span{flex:1; word-break:break-all; color:var(--toc)}
 .who i{font-style:normal; font-size:11px; color:var(--tocs)}
-.tally{font-size:16px; font-weight:700; color:var(--nw)}
+.gname{font-size:17px; font-weight:700; color:var(--nw); width:100%}
+.tally{font-size:14px; font-weight:600; color:var(--tocs)}
 .tally.all{color:var(--ok)}
+.pickup{background:#fff8e8}
+.pickup h3{color:#8a6400}
+.addons.big li{font-size:17px}
+.addons.big .qty{background:#f6e2b8; color:#7a5600; font-size:16px; min-width:40px; padding:5px 9px}
 .given{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px}
 .given .num{min-width:64px}
 .num.arm{background:#fdecec; border-color:var(--err); color:var(--err); font-size:13px}

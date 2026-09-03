@@ -166,13 +166,22 @@ function render(){
     ? '<ul class="addons">'+hit.a.map(function(a){
         return '<li><span class="qty">'+a[1]+'×</span>'+esc(a[0])+'</li>'; }).join("")+'</ul>'
     : '<p class="none">Keine Add-ons gebucht.</p>';
+  var pick = (hit.p && hit.p.length)
+    ? '<div class="sect pickup"><h3>Abholen — jetzt mitgeben</h3><ul class="addons big">'+
+      hit.p.map(function(a){
+        return '<li><span class="qty">'+a[1]+'×</span>'+esc(a[0])+'</li>'; }).join("")+'</ul></div>'
+    : "";
 
   el("out").innerHTML =
     '<article class="card">'+
-      '<div class="guest-hd"><span class="tally'+(done===want?' all':'')+'">'+done+' von '+want+
-        (want>1?' Zelten':' Zelt')+' vergeben</span>'+
+      '<div class="guest-hd">'+
+        (hit.n?'<span class="gname">'+esc(hit.n)+'</span>':'')+
+        '<span class="tally'+(done===want?' all':'')+'">'+
+        (want ? done+' von '+want+(want>1?' Zelten':' Zelt')+' vergeben'
+              : 'Nur Abholung — kein Stellplatz')+'</span>'+
         (hit.o?'<span class="order">Bestellung '+esc(hit.o)+'</span>':'')+'</div>'+
-      '<div class="sect"><h3>Add-ons</h3>'+addons+'</div>'+
+      pick+
+      '<div class="sect"><h3>Add-ons — liegen schon im Zelt</h3>'+addons+'</div>'+
       blocks+
       '<div class="sect"><button type="button" class="primary" id="next">Nächster Gast</button></div>'+
     '</article>';

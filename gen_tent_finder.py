@@ -24,6 +24,7 @@ If the guest list must stay secret, this needs a server-side lookup instead.
 """
 import csv, hashlib, html, json, os, secrets
 import siteplan as SP
+import gen_booth as BOOTH
 
 HERE = SP.HERE
 REV, DATE = "Rev 2", "2026-09-02"
@@ -225,7 +226,15 @@ def page():
                                       "pos": posn.get((a["key"], str(t["no"])), "")}
                                      for t in a["tents"]]}
                 for a in areas.values() if a["tents"]}
-    data = {"salt": s, "book": book, "areas": areas,
+    # C5Z is not on the guest map — its tents are handed out at the booth — but
+    # its guests still need to see what they booked and what to collect.
+    c5z = {}
+    try:
+        c5z, _, _, _ = BOOTH.bookings(s, BOOTH.tents())
+    except Exception as e:
+        print("  ! C5Z data not loaded (%s)" % e)
+
+    data = {"salt": s, "book": book, "areas": areas, "c5z": c5z,
             "admins": [hashlib.sha256((s + m.strip().lower()).encode()).hexdigest()
                        for m in ADMINS],
             "overview": overview,
@@ -313,13 +322,14 @@ __JS__</script>
     with open(os.path.join(HERE, "index.html"), "w", encoding="utf-8") as f:
         f.write(STANDALONE.replace("__HEAD__", out[:cut].strip())
                           .replace("__BODY__", out[cut:].strip()))
-    return path, n, len(book), bad, dup, notes, clash, demo, total, areas
+    return path, n, len(book), bad, dup, notes, clash, demo, total, areas, len(c5z)
 
 
 if __name__ == "__main__":
-    path, n, guests, bad, dup, notes, clash, demo, total, areas = page()
+    path, n, guests, bad, dup, notes, clash, demo, total, areas, c5zn = page()
     print("%s — %d tents · %d bookings / %d addresses%s"
           % (os.path.basename(path), total, n, guests, "  [demo data]" if demo else ""))
+    print("  C5Z  %d guests carried over for the pick-up view" % c5zn)
     for a in areas.values():
         print("  %-4s %2d tents%s" % (a["key"], len(a["tents"]),
               "" if a["drawn"] else "  (drawing not in this checkout)"))

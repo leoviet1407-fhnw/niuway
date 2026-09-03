@@ -3,7 +3,8 @@
 (function(){
 "use strict";
 var AREAS=DATA.areas, BOOK=DATA.book, SALT=DATA.salt, MODEL=DATA.labels,
-    ADMINS=DATA.admins||[], OVERVIEW=DATA.overview||{}, SW={r:"r",L:"l",X:"x"};
+    ADMINS=DATA.admins||[], OVERVIEW=DATA.overview||{}, C5Z=DATA.c5z||{},
+    SW={r:"r",L:"l",X:"x"};
 
 /* --- All guest-facing copy, German and English ---------------------------
    T.de and T.en carry the same keys in the same order, so the two languages
@@ -27,6 +28,11 @@ de:{                                             /* German — shown to guests *
   hours:"Erreichbar %h",
   addon:"Comfort-Add-on gebucht? Es liegt schon fertig für dich im Zelt.",
   camping:"Camping",
+  c5zTitle:"Camping C5Z", c5zBooked:"Gebucht",
+  c5zNo:"Deine Zeltnummer bekommst du am niuway-Booth auf C5Z.",
+  c5zGot:function(n){return n.length>1?"Deine Zelte: "+n.join(", "):"Dein Zelt: "+n[0];},
+  pickH:"Am Booth abholen", pickNone:"Nichts abzuholen.",
+  addonH:"Add-ons — liegen schon im Zelt",
   checkin:"Jetzt einchecken", checkedIn:"Eingecheckt", checkFail:"Hat nicht geklappt — nochmal versuchen.",
   checkout:"Auschecken", checkedOut:"Ausgecheckt — gute Heimreise!",
   remind:"Denk beim Abreisen daran, dich hier auszuchecken — dann wissen wir, dass dein Zelt frei ist.",
@@ -59,6 +65,11 @@ en:{                                             /* English — same keys, same 
   hours:"Available %h",
   addon:"Booked a comfort add-on? It is already set up for you inside the tent.",
   camping:"Campsite",
+  c5zTitle:"Campsite C5Z", c5zBooked:"Booked",
+  c5zNo:"You get your tent number at the niuway booth on C5Z.",
+  c5zGot:function(n){return n.length>1?"Your tents: "+n.join(", "):"Your tent: "+n[0];},
+  pickH:"Collect at the booth", pickNone:"Nothing to collect.",
+  addonH:"Add-ons — already set up in the tent",
   checkin:"Check in now", checkedIn:"Checked in", checkFail:"That didn't go through — try again.",
   checkout:"Check out", checkedOut:"Checked out — safe trip home!",
   remind:"Remember to check out here when you leave — that is how we know your tent is free.",
@@ -191,6 +202,45 @@ function checkBlock(key, L){
   return '<button type="button" class="checkin" data-key="'+esc(key)+'">'+esc(L.checkin)+'</button>';
 }
 
+/* --- C5Z: no map, no number until the booth hands one out ---------------- */
+var ASSIGNED=[];
+function loadAssigned(hash){
+  return fetch("api/assign",{headers:{Accept:"application/json"}})
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(j){
+      var a=(j&&j.assign)||{};
+      ASSIGNED=Object.keys(a).filter(function(no){ return a[no].h===hash; })
+                            .sort(function(x,y){ return x-y; });
+    })
+    .catch(function(){ ASSIGNED=[]; });
+}
+function c5zCard(g){
+  var L=t();
+  var booked=Object.keys(g.t||{}).map(function(k){ return (g.t[k]>1?g.t[k]+"× ":"")+k; }).join(" · ");
+  var pick = (g.p&&g.p.length)
+    ? '<ul class="picklist">'+g.p.map(function(a){
+        return '<li><span class="pq">'+a[1]+'×</span>'+esc(a[0])+'</li>'; }).join("")+'</ul>'
+    : '<p class="tent-sub" style="padding:0">'+esc(L.pickNone)+'</p>';
+  var addons = (g.a&&g.a.length)
+    ? '<ul class="picklist quiet">'+g.a.map(function(a){
+        return '<li><span class="pq">'+a[1]+'×</span>'+esc(a[0])+'</li>'; }).join("")+'</ul>'
+    : "";
+  return '<article class="card">'+
+    '<p class="tent-eyebrow">'+esc(L.c5zTitle)+'</p>'+
+    (ASSIGNED.length
+      ? '<p class="tent-no">'+esc(ASSIGNED.join(" · "))+'</p>'+
+        '<p class="tent-sub">'+esc(L.sub)+'</p>'
+      : '<p class="c5z-wait">'+esc(L.c5zNo)+'</p>')+
+    (booked?'<dl class="facts"><div><dt>'+esc(L.c5zBooked)+'</dt><dd class="sm">'+
+      esc(booked)+'</dd></div></dl>':'')+
+    '<div class="pickbox"><h3>'+esc(L.pickH)+'</h3>'+pick+'</div>'+
+    (addons?'<div class="pickbox quiet"><h3>'+esc(L.addonH)+'</h3>'+addons+'</div>':'')+
+    (a_geo()?'<a class="route" target="_blank" rel="noopener noreferrer" href="'+a_geo()+'">'+
+      esc(L.route)+'</a>':'')+
+    '</article>';
+}
+function a_geo(){ return ""; }
+
 /* --- lightbox ---------------------------------------------------------- */
 function openPlan(key){
   var hit=find(key); if(!hit || !hit.a.plan) return;
@@ -210,10 +260,19 @@ el("lbClose").addEventListener("click",closePlan);
 document.addEventListener("keydown",function(e){ if(e.key==="Escape") closePlan(); });
 
 /* --- render ------------------------------------------------------------ */
-var shown=null, isAdmin=false, leaving=null, tries=0, blockedUntil=0;
+var shown=null, c5zHit=null, isAdmin=false, leaving=null, tries=0, blockedUntil=0;
 function render(){
   var box=el("out");
   box.innerHTML="";
+  if(c5zHit){
+    box.innerHTML=c5zCard(c5zHit)+
+      '<button type="button" class="again" id="again">'+esc(t().again)+'</button>';
+    el("again").addEventListener("click",function(){
+      c5zHit=null; shown=null; render(); el("msg").textContent=""; el("msg").className="msg";
+      el("email").value=""; el("email").focus(); window.scrollTo({top:0,behavior:"smooth"});
+    });
+    return;
+  }
   if(!shown) return;
   box.innerHTML=shown.map(function(e,i){return card(e,i+1,shown.length);}).join("")+
     (isAdmin?overview():"")+
@@ -243,7 +302,7 @@ function render(){
     });
   });
   el("again").addEventListener("click",function(){
-    shown=null; isAdmin=false; render(); el("msg").textContent=""; el("msg").className="msg";
+    shown=null; c5zHit=null; isAdmin=false; render(); el("msg").textContent=""; el("msg").className="msg";
     el("email").value=""; el("email").focus();
     window.scrollTo({top:0, behavior:"smooth"});
   });
@@ -313,11 +372,18 @@ function say(key,n){
 el("finder").addEventListener("submit",function(ev){
   ev.preventDefault();
   var mail=String(el("email").value).trim().toLowerCase(), form=el("finder");
-  shown=null; isAdmin=false; render(); form.classList.remove("invalid");
+  shown=null; c5zHit=null; isAdmin=false; render(); form.classList.remove("invalid");
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)){ form.classList.add("invalid"); say("invalid"); return; }
   if(Date.now()<blockedUntil){ say("wait"); return; }
-  var h=sha256(SALT+mail), keys=BOOK[h];
+  var h=sha256(SALT+mail), keys=BOOK[h], c5=C5Z[h];
   isAdmin=ADMINS.indexOf(h)>=0;
+  if(!keys && c5){
+    tries=0; shown=null; c5zHit=c5; say("found",1);
+    loadAssigned(h).then(function(){ render();
+      if(el("out").firstChild) el("out").firstChild.scrollIntoView({behavior:"smooth",block:"start"}); });
+    return;
+  }
+  c5zHit=null;
   if(!keys){
     isAdmin=false;
     tries++;
